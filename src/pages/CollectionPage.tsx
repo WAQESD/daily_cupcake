@@ -1,4 +1,5 @@
 import { useDeferredValue, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { COLLECTION_META, RARITY_META, RECIPE_MAP, RECIPES } from "../data/gameData";
@@ -6,10 +7,12 @@ import { getDiscoveryProgressPercent } from "../lib/gameLogic";
 import { useGameStore } from "../store/gameStore";
 
 export function CollectionPage() {
-  const { discoveredRecipeIds, collection } = useGameStore((state) => ({
-    discoveredRecipeIds: state.discoveredRecipeIds,
-    collection: state.collection,
-  }));
+  const { discoveredRecipeIds, collection } = useGameStore(
+    useShallow((state) => ({
+      discoveredRecipeIds: state.discoveredRecipeIds,
+      collection: state.collection,
+    })),
+  );
 
   const [rarityFilter, setRarityFilter] = useState("all");
   const [collectionFilter, setCollectionFilter] = useState("all");

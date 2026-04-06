@@ -43,6 +43,12 @@ export const DEFAULT_SELECTION: Selection = {
   finisher: null,
 };
 
+type SaveTransferPayload = {
+  format: string;
+  version: number;
+  data: Record<string, unknown>;
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -85,15 +91,13 @@ async function gunzipToText(bytes: Uint8Array) {
     throw new Error("이 브라우저는 저장 문자열 복원을 지원하지 않아요. 최신 브라우저에서 다시 시도해 주세요.");
   }
 
-  const decompressedStream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const decompressedStream = new Blob([Uint8Array.from(bytes)])
+    .stream()
+    .pipeThrough(new DecompressionStream("gzip"));
   return await new Response(decompressedStream).text();
 }
 
-function validateSaveTransferPayload(payload: unknown): asserts payload is {
-  format: string;
-  version: number;
-  data: unknown;
-} {
+function validateSaveTransferPayload(payload: unknown): asserts payload is SaveTransferPayload {
   if (!isRecord(payload)) {
     throw new Error("저장 문자열 안의 데이터 형식이 올바르지 않아요.");
   }
@@ -106,11 +110,12 @@ function validateSaveTransferPayload(payload: unknown): asserts payload is {
     throw new Error("지원하지 않는 저장 데이터 버전이에요.");
   }
 
-  if (!isRecord(payload.data)) {
+  const data = payload.data;
+  if (!isRecord(data)) {
     throw new Error("가져올 저장 데이터가 비어 있어요.");
   }
 
-  const missingKeys = REQUIRED_GAME_STATE_KEYS.filter((key) => !(key in payload.data));
+  const missingKeys = REQUIRED_GAME_STATE_KEYS.filter((key) => !(key in data));
   if (missingKeys.length > 0) {
     throw new Error("필수 저장 항목이 빠져 있어 가져올 수 없어요.");
   }

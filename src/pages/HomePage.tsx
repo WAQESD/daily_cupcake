@@ -1,4 +1,5 @@
 import heroBakery from "../../assets/images/hero-bakery.png";
+import { useShallow } from "zustand/react/shallow";
 import { MAX_PENDING_BOXES, SHOWCASE_LIMIT } from "../config/game";
 import { RECIPES } from "../data/gameData";
 import {
@@ -32,22 +33,24 @@ export function HomePage({ now, onNavigate }: HomePageProps) {
     challengeMessage,
     claimDailyGift,
     resetGame,
-  } = useGameStore((state) => ({
-    inventory: state.inventory,
-    collection: state.collection,
-    discoveredRecipeIds: state.discoveredRecipeIds,
-    favorites: state.favorites,
-    pendingBoxes: state.pendingBoxes,
-    dailyStreak: state.dailyStreak,
-    lastDailyClaimDate: state.lastDailyClaimDate,
-    lastDailyChallengeDate: state.lastDailyChallengeDate,
-    lastDeliveryResolvedAt: state.lastDeliveryResolvedAt,
-    deliveryMessage: state.deliveryMessage,
-    craftMessage: state.craftMessage,
-    challengeMessage: state.challengeMessage,
-    claimDailyGift: state.claimDailyGift,
-    resetGame: state.resetGame,
-  }));
+  } = useGameStore(
+    useShallow((state) => ({
+      inventory: state.inventory,
+      collection: state.collection,
+      discoveredRecipeIds: state.discoveredRecipeIds,
+      favorites: state.favorites,
+      pendingBoxes: state.pendingBoxes,
+      dailyStreak: state.dailyStreak,
+      lastDailyClaimDate: state.lastDailyClaimDate,
+      lastDailyChallengeDate: state.lastDailyChallengeDate,
+      lastDeliveryResolvedAt: state.lastDeliveryResolvedAt,
+      deliveryMessage: state.deliveryMessage,
+      craftMessage: state.craftMessage,
+      challengeMessage: state.challengeMessage,
+      claimDailyGift: state.claimDailyGift,
+      resetGame: state.resetGame,
+    })),
+  );
 
   const discoveredCount = discoveredRecipeIds.length;
   const progressPercent = getDiscoveryProgressPercent(discoveredCount, RECIPES.length);

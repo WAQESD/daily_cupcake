@@ -1,15 +1,18 @@
 import showcaseShelf from "../../assets/images/showcase-shelf.png";
+import { useShallow } from "zustand/react/shallow";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { RECIPE_MAP } from "../data/gameData";
 import { useGameStore } from "../store/gameStore";
 
 export function ShowcasePage() {
-  const { favorites, collection, toggleFavorite } = useGameStore((state) => ({
-    favorites: state.favorites,
-    collection: state.collection,
-    toggleFavorite: state.toggleFavorite,
-  }));
+  const { favorites, collection, toggleFavorite } = useGameStore(
+    useShallow((state) => ({
+      favorites: state.favorites,
+      collection: state.collection,
+      toggleFavorite: state.toggleFavorite,
+    })),
+  );
 
   const favoriteRecipes = favorites
     .map((recipeId) => RECIPE_MAP.get(recipeId))

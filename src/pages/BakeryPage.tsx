@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import ovenStage from "../../assets/images/oven-stage.png";
+import { useShallow } from "zustand/react/shallow";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP, RECIPES, getRecipeFromSelection } from "../data/gameData";
@@ -24,19 +25,21 @@ export function BakeryPage() {
     clearSelection,
     craftCupcake,
     toggleFavorite,
-  } = useGameStore((state) => ({
-    inventory: state.inventory,
-    selection: state.selection,
-    discoveredRecipeIds: state.discoveredRecipeIds,
-    collection: state.collection,
-    favorites: state.favorites,
-    craftMessage: state.craftMessage,
-    lastCraftedRecipeId: state.lastCraftedRecipeId,
-    toggleSelection: state.toggleSelection,
-    clearSelection: state.clearSelection,
-    craftCupcake: state.craftCupcake,
-    toggleFavorite: state.toggleFavorite,
-  }));
+  } = useGameStore(
+    useShallow((state) => ({
+      inventory: state.inventory,
+      selection: state.selection,
+      discoveredRecipeIds: state.discoveredRecipeIds,
+      collection: state.collection,
+      favorites: state.favorites,
+      craftMessage: state.craftMessage,
+      lastCraftedRecipeId: state.lastCraftedRecipeId,
+      toggleSelection: state.toggleSelection,
+      clearSelection: state.clearSelection,
+      craftCupcake: state.craftCupcake,
+      toggleFavorite: state.toggleFavorite,
+    })),
+  );
 
   const spotlightIngredients = getTopInventoryIngredients(inventory);
   const selectedRecipe = getRecipeFromSelection(selection);

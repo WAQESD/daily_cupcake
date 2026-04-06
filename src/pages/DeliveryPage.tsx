@@ -1,4 +1,5 @@
 import { CupcakeArt } from "../components/CupcakeArt";
+import { useShallow } from "zustand/react/shallow";
 import { Tag } from "../components/Tag";
 import { MAX_PENDING_BOXES } from "../config/game";
 import { getDailyRecipe } from "../data/gameData";
@@ -18,15 +19,17 @@ export function DeliveryPage({ now }: DeliveryPageProps) {
     lastDailyChallengeDate,
     claimPendingBoxes,
     claimDailyGift,
-  } = useGameStore((state) => ({
-    pendingBoxes: state.pendingBoxes,
-    deliveryMessage: state.deliveryMessage,
-    challengeMessage: state.challengeMessage,
-    lastDailyClaimDate: state.lastDailyClaimDate,
-    lastDailyChallengeDate: state.lastDailyChallengeDate,
-    claimPendingBoxes: state.claimPendingBoxes,
-    claimDailyGift: state.claimDailyGift,
-  }));
+  } = useGameStore(
+    useShallow((state) => ({
+      pendingBoxes: state.pendingBoxes,
+      deliveryMessage: state.deliveryMessage,
+      challengeMessage: state.challengeMessage,
+      lastDailyClaimDate: state.lastDailyClaimDate,
+      lastDailyChallengeDate: state.lastDailyChallengeDate,
+      claimPendingBoxes: state.claimPendingBoxes,
+      claimDailyGift: state.claimDailyGift,
+    })),
+  );
 
   const todayKey = getTodayKey(now);
   const dailyRecipe = getDailyRecipe(todayKey);
