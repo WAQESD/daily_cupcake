@@ -1,5 +1,5 @@
 import { DAILY_TIMEZONE, DELIVERY_MS, MAX_PENDING_BOXES } from "../config/game";
-import { ALL_INGREDIENTS, CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP } from "../data/gameData";
+import { ALL_INGREDIENTS, CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP, getRecipeFromSelection } from "../data/gameData";
 import type { CategoryId, GameState, Inventory, Selection } from "../types/game";
 import { cloneGameState } from "./gameState";
 
@@ -90,6 +90,20 @@ export function hasEnoughIngredientsForSelection(inventory: Inventory, selection
     const ingredientId = selection[id];
     return ingredientId !== null && (inventory[ingredientId] ?? 0) > 0;
   });
+}
+
+export function getCraftedRecipePreview(selection: Selection, collection: GameState["collection"]) {
+  const recipe = getRecipeFromSelection(selection);
+  if (!recipe) {
+    return null;
+  }
+
+  const record = collection[recipe.id];
+  if (!record) {
+    return null;
+  }
+
+  return { recipe, record };
 }
 
 export function synchronizePendingBoxes(snapshot: GameState, now = Date.now()) {

@@ -6,6 +6,7 @@ import { Tag } from "../components/Tag";
 import { CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP, RECIPES, getRecipeFromSelection } from "../data/gameData";
 import {
   getCategoryTotal,
+  getCraftedRecipePreview,
   getSelectedCount,
   getTopInventoryIngredients,
   hasEnoughIngredientsForSelection,
@@ -43,18 +44,23 @@ export function BakeryPage() {
 
   const spotlightIngredients = getTopInventoryIngredients(inventory);
   const selectedRecipe = getRecipeFromSelection(selection);
+  const craftedSelectionPreview = getCraftedRecipePreview(selection, collection);
   const selectedCount = getSelectedCount(selection);
   const canCraft = Boolean(selectedRecipe) && hasEnoughIngredientsForSelection(inventory, selection);
   const defaultMessage =
     selectedCount === CATEGORY_META.length
-      ? "모든 재료가 준비됐어요. 중앙 오븐 버튼을 눌러 구워 보세요."
-      : `재료 ${selectedCount}/${CATEGORY_META.length} 선택됨`;
+      ? "모든 재료가 준비됐어요. 중앙 굽기 버튼을 눌러 컵케이크를 구워 보세요."
+      : `재료 ${selectedCount}/${CATEGORY_META.length} 선택 중이에요.`;
 
   const lastCraftedRecipe = lastCraftedRecipeId
     ? RECIPES.find((recipe) => recipe.id === lastCraftedRecipeId) ?? null
     : null;
-  const lastCraftedCount = lastCraftedRecipe ? collection[lastCraftedRecipe.id]?.count ?? 0 : 0;
-  const isFavorite = lastCraftedRecipe ? favorites.includes(lastCraftedRecipe.id) : false;
+  const displayedRecipe = craftedSelectionPreview?.recipe ?? lastCraftedRecipe;
+  const displayedRecipeCount =
+    craftedSelectionPreview?.record.count ??
+    (lastCraftedRecipe ? collection[lastCraftedRecipe.id]?.count ?? 0 : 0);
+  const isPreviewingKnownRecipe = Boolean(craftedSelectionPreview);
+  const isFavorite = displayedRecipe ? favorites.includes(displayedRecipe.id) : false;
 
   return (
     <section className="workspace panel">
@@ -63,7 +69,9 @@ export function BakeryPage() {
           <p className="eyebrow">굽기 공간</p>
           <h2>재료 확인과 컵케이크 굽기</h2>
         </div>
-        <span className="section-heading__note">재료 현황을 먼저 보고, 필요한 조합만 골라 바로 굽는 페이지예요.</span>
+        <span className="section-heading__note">
+          보유 재료를 확인하고, 필요한 조합만 골라 바로 굽는 페이지예요.
+        </span>
       </div>
 
       <div className="workspace__top">
@@ -73,12 +81,16 @@ export function BakeryPage() {
               <p className="eyebrow">보유 재료</p>
               <h3>지금 쓸 수 있는 재료</h3>
             </div>
-            <span className="subpanel-heading__note">카테고리별 총량과 자주 쓰는 재료를 먼저 확인해요.</span>
+            <span className="subpanel-heading__note">
+              카테고리별 수량과 자주 쓰는 재료를 먼저 확인해 보세요.
+            </span>
           </div>
 
           <div className="inventory-category-totals">
             {CATEGORY_META.map(({ id, label }) => {
-              const availableKinds = INGREDIENT_GROUPS[id].filter((ingredient) => (inventory[ingredient.id] ?? 0) > 0).length;
+              const availableKinds = INGREDIENT_GROUPS[id].filter(
+                (ingredient) => (inventory[ingredient.id] ?? 0) > 0,
+              ).length;
               const selectedIngredient = selection[id] ? INGREDIENT_MAP.get(selection[id] as string) : null;
 
               return (
@@ -126,7 +138,7 @@ export function BakeryPage() {
 
           <div className="oven-stage__layout">
             <div className="oven-stage__visual">
-              <img className="oven-stage__image" src={ovenStage} alt="컵케이크를 조합하는 작업대 일러스트" />
+              <img className="oven-stage__image" src={ovenStage} alt="컵케이크를 굽는 오븐 작업대" />
               <button
                 type="button"
                 className="pixel-button pixel-button--primary oven-stage__craft"
@@ -151,9 +163,9 @@ export function BakeryPage() {
                     return (
                       <article key={id} className={`selection-card ${ingredient ? "selection-card--filled" : ""}`}>
                         <span className="selection-card__label">{label}</span>
-                        <strong>{ingredient ? ingredient.name : "아직 선택 안 함"}</strong>
+                        <strong>{ingredient ? ingredient.name : "아직 선택 안 됨"}</strong>
                         <span className="selection-card__meta">
-                          {ingredient ? `${ingredient.short} 준비 완료` : "아래 재료 카드에서 클릭"}
+                          {ingredient ? `${ingredient.short} 준비 완료` : "아래 재료 카드에서 선택해 주세요"}
                         </span>
                       </article>
                     );
@@ -161,22 +173,31 @@ export function BakeryPage() {
                 </div>
 
                 <div className="selection-hint">
-                  {selectedRecipe ? (
+                  {isPreviewingKnownRecipe && selectedRecipe ? (
+                    <>
+                      <strong>이미 시도한 정확한 조합</strong>
+                      <p>
+                        {`${selectedRecipe.name} 조합은 이전에 ${craftedSelectionPreview?.record.count ?? 0}회 성공했어요. 아래 결과 카드에서 바로 다시 확인할 수 있어요.`}
+                      </p>
+                    </>
+                  ) : selectedRecipe ? (
                     discoveredRecipeIds.includes(selectedRecipe.id) ? (
                       <>
-                        <strong>알고 있는 레시피</strong>
-                        <p>{`${selectedRecipe.name} 조합이에요. 빠르게 다시 만들 수 있어요.`}</p>
+                        <strong>이미 발견한 레시피</strong>
+                        <p>
+                          {`${selectedRecipe.name} 조합은 이미 발견했지만, 지금 고른 정확한 4재료는 아직 성공 기록이 없을 수도 있어요.`}
+                        </p>
                       </>
                     ) : (
                       <>
-                        <strong>미지의 레시피</strong>
-                        <p>아직 도감에 없는 새로운 컵케이크가 될지도 몰라요.</p>
+                        <strong>아직 만들지 않은 조합</strong>
+                        <p>이 정확한 4재료 조합은 아직 성공 기록이 없어요. 굽기 전까지는 미확인 상태로 남아요.</p>
                       </>
                     )
                   ) : (
                     <>
                       <strong>조합 중</strong>
-                      <p>네 종류의 재료를 모두 고르면 오븐 버튼이 활성화돼요.</p>
+                      <p>4종류 재료를 모두 고르면 결과 영역에서 이미 만든 조합인지 바로 확인할 수 있어요.</p>
                     </>
                   )}
                 </div>
@@ -185,31 +206,41 @@ export function BakeryPage() {
               </div>
 
               <div className="mix-preview__result">
-                <h3>방금 완성한 컵케이크</h3>
-                {lastCraftedRecipe ? (
-                  <div className="result-card">
-                    <CupcakeArt recipe={lastCraftedRecipe} />
+                <h3>{isPreviewingKnownRecipe ? "이미 만든 결과 미리보기" : "방금 완성한 컵케이크"}</h3>
+                {displayedRecipe ? (
+                  <div className={`result-card ${isPreviewingKnownRecipe ? "result-card--known-selection" : ""}`}>
+                    <CupcakeArt recipe={displayedRecipe} />
                     <div className="result-card__copy">
                       <div className="result-card__heading">
-                        <strong>{lastCraftedRecipe.name}</strong>
+                        <strong>{displayedRecipe.name}</strong>
                         <button
                           type="button"
                           className="mini-button"
-                          onClick={() => toggleFavorite(lastCraftedRecipe.id)}
+                          onClick={() => toggleFavorite(displayedRecipe.id)}
                         >
                           {isFavorite ? "진열장에서 내리기" : "진열장에 올리기"}
                         </button>
                       </div>
-                      <p>{lastCraftedRecipe.description}</p>
                       <div className="result-card__tags">
-                        <Tag label={lastCraftedRecipe.collectionLabel} />
-                        <Tag label={lastCraftedRecipe.rarityLabel} bright />
-                        <Tag label={`제작 ${lastCraftedCount}회`} />
+                        {isPreviewingKnownRecipe ? <Tag label="이미 만든 결과" bright /> : null}
+                        <Tag label={displayedRecipe.collectionLabel} />
+                        <Tag label={displayedRecipe.rarityLabel} bright />
+                        <Tag label={`제작 ${displayedRecipeCount}회`} />
+                      </div>
+                      <p>
+                        {isPreviewingKnownRecipe
+                          ? `${displayedRecipe.description} 이 정확한 조합은 새로고침 뒤에도 같은 기록으로 다시 확인할 수 있어요.`
+                          : displayedRecipe.description}
+                      </p>
+                      <div className="result-card__tags">
+                        <Tag label={isPreviewingKnownRecipe ? "현재 선택과 일치" : "가장 최근 결과"} />
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="result-card result-card--empty">아직 굽기 결과가 없어요.</div>
+                  <div className="result-card result-card--empty">
+                    아직 굽기 결과가 없어요. 정확한 4재료를 모두 고르면 이미 만든 조합인지 먼저 보여드릴게요.
+                  </div>
                 )}
               </div>
             </div>
