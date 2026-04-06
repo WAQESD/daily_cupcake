@@ -56,6 +56,8 @@ const elements = {
   inventoryTotal: document.querySelector("#inventoryTotal"),
   streakCount: document.querySelector("#streakCount"),
   favoriteCount: document.querySelector("#favoriteCount"),
+  inventoryCategoryTotals: document.querySelector("#inventoryCategoryTotals"),
+  inventorySpotlight: document.querySelector("#inventorySpotlight"),
   claimBoxesButton: document.querySelector("#claimBoxesButton"),
   pendingBoxesLabel: document.querySelector("#pendingBoxesLabel"),
   boxCapLabel: document.querySelector("#boxCapLabel"),
@@ -125,7 +127,11 @@ function normalizeState(rawState) {
     ? rawState.discoveredRecipeIds.filter((recipeId) => RECIPES.some((recipe) => recipe.id === recipeId))
     : [];
   normalized.collection = rawState.collection ?? {};
-  normalized.favorites = Array.isArray(rawState.favorites) ? rawState.favorites.slice(0, SHOWCASE_LIMIT) : [];
+  normalized.favorites = Array.isArray(rawState.favorites)
+    ? rawState.favorites
+        .filter((recipeId) => RECIPES.some((recipe) => recipe.id === recipeId))
+        .slice(0, SHOWCASE_LIMIT)
+    : [];
   normalized.pendingBoxes = clamp(Number(rawState.pendingBoxes ?? DEFAULT_STATE.pendingBoxes), 0, MAX_PENDING_BOXES);
   normalized.lastDeliveryResolvedAt = Number(rawState.lastDeliveryResolvedAt ?? Date.now());
   normalized.lastDailyClaimDate = rawState.lastDailyClaimDate ?? "";
@@ -359,6 +365,7 @@ function clearSelection() {
     topping: null,
     finisher: null,
   };
+  uiState.craftMessage = "";
   saveState();
   render();
 }
@@ -366,6 +373,7 @@ function clearSelection() {
 function toggleSelection(categoryId, ingredientId) {
   const currentValue = state.selection[categoryId];
   state.selection[categoryId] = currentValue === ingredientId ? null : ingredientId;
+  uiState.craftMessage = "";
   saveState();
   render();
 }
@@ -402,6 +410,32 @@ function resetSave() {
   uiState.challengeMessage = "";
   saveState();
   render();
+}
+
+function getTotalInventoryCount() {
+  return Object.values(state.inventory).reduce((sum, amount) => sum + amount, 0);
+}
+
+function getSelectedCount() {
+  return CATEGORY_META.filter(({ id }) => Boolean(state.selection[id])).length;
+}
+
+function getCategoryTotal(categoryId) {
+  return INGREDIENT_GROUPS[categoryId].reduce((sum, ingredient) => {
+    return sum + (state.inventory[ingredient.id] ?? 0);
+  }, 0);
+}
+
+function getTopInventoryIngredients(limit = 6) {
+  return ALL_INGREDIENTS.filter((ingredient) => (state.inventory[ingredient.id] ?? 0) > 0)
+    .sort((left, right) => {
+      const amountDiff = (state.inventory[right.id] ?? 0) - (state.inventory[left.id] ?? 0);
+      if (amountDiff !== 0) {
+        return amountDiff;
+      }
+      return left.name.localeCompare(right.name, "ko");
+    })
+    .slice(0, limit);
 }
 
 function createCupcakeArt(recipe, size = "medium") {
@@ -443,7 +477,6 @@ function renderHeader() {
   const discoveredCount = state.discoveredRecipeIds.length;
   const craftedEntries = Object.values(state.collection);
   const totalCrafted = craftedEntries.reduce((sum, entry) => sum + entry.count, 0);
-  const inventoryTotal = Object.values(state.inventory).reduce((sum, amount) => sum + amount, 0);
   const progressPercent = Math.round((discoveredCount / RECIPES.length) * 100);
   const todayKey = getTodayKey();
   const canClaimDailyGift = state.lastDailyClaimDate !== todayKey;
@@ -457,7 +490,7 @@ function renderHeader() {
   elements.craftedCount.textContent = `${totalCrafted}개`;
   elements.craftedUniqueCount.textContent = `유니크 ${craftedEntries.length}종`;
   elements.pendingBoxesCount.textContent = `${state.pendingBoxes}상자`;
-  elements.inventoryTotal.textContent = `재료 ${inventoryTotal}개 보관 중`;
+  elements.inventoryTotal.textContent = `재료 ${getTotalInventoryCount()}개 보관 중`;
   elements.streakCount.textContent = `${state.dailyStreak}일`;
   elements.favoriteCount.textContent = `진열 중 ${state.favorites.length}종`;
   elements.pendingBoxesLabel.textContent = `현재 ${state.pendingBoxes}상자 대기 중`;
@@ -473,6 +506,46 @@ function renderCountdown() {
   const elapsed = Date.now() - state.lastDeliveryResolvedAt;
   const remaining = DELIVERY_MS - (elapsed % DELIVERY_MS);
   elements.nextDeliveryCountdown.textContent = formatCountdown(remaining);
+}
+
+function renderInventoryOverview() {
+  elements.inventoryCategoryTotals.innerHTML = CATEGORY_META.map(({ id, label }) => {
+    const availableKinds = INGREDIENT_GROUPS[id].filter((ingredient) => (state.inventory[ingredient.id] ?? 0) > 0).length;
+    const selectedIngredient = state.selection[id] ? INGREDIENT_MAP.get(state.selection[id]) : null;
+
+    return `
+      <article class="inventory-total">
+        <span class="inventory-total__label">${label}</span>
+        <strong>${getCategoryTotal(id)}개</strong>
+        <span class="inventory-total__sub">
+          ${availableKinds}종 사용 가능${selectedIngredient ? ` · ${selectedIngredient.short} 선택` : ""}
+        </span>
+      </article>
+    `;
+  }).join("");
+
+  const spotlightIngredients = getTopInventoryIngredients();
+  if (spotlightIngredients.length === 0) {
+    elements.inventorySpotlight.innerHTML = `
+      <div class="empty-card">재료가 비어 있어요. 배달 상자를 열어 다시 채워 보세요.</div>
+    `;
+    return;
+  }
+
+  elements.inventorySpotlight.innerHTML = spotlightIngredients
+    .map((ingredient) => {
+      const category = CATEGORY_META.find(({ id }) => id === ingredient.category);
+      return `
+        <article class="inventory-chip">
+          <div class="inventory-chip__info">
+            <span class="inventory-chip__name">${ingredient.name}</span>
+            <span class="inventory-chip__meta">${category?.label ?? ""} · ${ingredient.short}</span>
+          </div>
+          <span class="inventory-chip__count">x${state.inventory[ingredient.id] ?? 0}</span>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function renderDailyRecipe() {
@@ -501,14 +574,17 @@ function renderDailyRecipe() {
 function renderIngredientBoard() {
   elements.ingredientBoard.innerHTML = CATEGORY_META.map(({ id, label, description }) => {
     const ingredients = INGREDIENT_GROUPS[id];
+    const selectedIngredient = state.selection[id] ? INGREDIENT_MAP.get(state.selection[id]) : null;
+    const availableKinds = ingredients.filter((ingredient) => (state.inventory[ingredient.id] ?? 0) > 0).length;
 
     return `
       <section class="ingredient-group">
         <header class="ingredient-group__header">
           <div>
             <h3>${label}</h3>
-            <p>${description}</p>
+            <p>${selectedIngredient ? `${selectedIngredient.name} 선택 중` : description}</p>
           </div>
+          <span class="ingredient-group__status">${availableKinds}/${ingredients.length} 준비됨</span>
         </header>
         <div class="ingredient-group__grid">
           ${ingredients
@@ -525,11 +601,12 @@ function renderIngredientBoard() {
                   data-action="select-ingredient"
                   data-category="${id}"
                   data-ingredient="${ingredient.id}"
+                  aria-pressed="${selected}"
                   ${unavailable ? "disabled" : ""}
                 >
                   <span class="ingredient-pill__name">${ingredient.name}</span>
                   <span class="ingredient-pill__meta">${ingredient.short}</span>
-                  <span class="ingredient-pill__count">${amount}</span>
+                  <span class="ingredient-pill__count">보유 ${amount}</span>
                 </button>
               `;
             })
@@ -549,15 +626,24 @@ function renderIngredientBoard() {
 function renderSelectionPreview() {
   const recipe = getRecipeFromSelection(state.selection);
   const discovered = recipe && state.discoveredRecipeIds.includes(recipe.id);
+  const selectedCount = getSelectedCount();
+  const canCraft = recipe && hasEnoughIngredientsForSelection(state.selection);
+  const defaultMessage =
+    selectedCount === CATEGORY_META.length
+      ? "모든 재료가 준비됐어요. 중앙 오븐 버튼을 눌러 구워 보세요."
+      : `재료 ${selectedCount}/${CATEGORY_META.length} 선택됨`;
 
   elements.selectionPreview.innerHTML = `
     <div class="selection-grid">
       ${CATEGORY_META.map(({ id, label }) => {
         const ingredient = state.selection[id] ? INGREDIENT_MAP.get(state.selection[id]) : null;
         return `
-          <article class="selection-card">
+          <article class="selection-card ${ingredient ? "selection-card--filled" : ""}">
             <span class="selection-card__label">${label}</span>
             <strong>${ingredient ? ingredient.name : "아직 선택 안 함"}</strong>
+            <span class="selection-card__meta">
+              ${ingredient ? `${ingredient.short} 준비 완료` : "아래 재료 카드에서 클릭"}
+            </span>
           </article>
         `;
       }).join("")}
@@ -566,13 +652,20 @@ function renderSelectionPreview() {
       ${
         recipe
           ? discovered
-            ? `<strong>알고 있는 레시피</strong><p>${recipe.name}</p>`
+            ? `<strong>알고 있는 레시피</strong><p>${recipe.name} 조합이에요. 빠르게 다시 만들 수 있어요.</p>`
             : `<strong>미지의 레시피</strong><p>아직 도감에 없는 새로운 컵케이크가 될지도 몰라요.</p>`
-          : `<strong>조합 중</strong><p>네 종류의 재료를 모두 고르면 오븐에 넣을 수 있어요.</p>`
+          : `<strong>조합 중</strong><p>네 종류의 재료를 모두 고르면 오븐 버튼이 활성화돼요.</p>`
       }
     </div>
-    <p class="mix-preview__message">${uiState.craftMessage}</p>
+    <p class="mix-preview__message">${uiState.craftMessage || defaultMessage}</p>
   `;
+
+  elements.craftButton.disabled = !canCraft;
+  elements.craftButton.textContent = canCraft
+    ? "선택한 재료로 컵케이크 굽기"
+    : selectedCount < CATEGORY_META.length
+      ? `재료 ${selectedCount}/${CATEGORY_META.length} 선택`
+      : "선택한 재료가 부족해요";
 }
 
 function renderCraftResult() {
@@ -707,7 +800,7 @@ function renderShowcase() {
   if (favoriteRecipes.length === 0) {
     elements.showcaseList.innerHTML = `
       <div class="empty-card">
-        마음에 드는 컵케이크를 진열장에 올려 보세요. 제작 결과 카드나 보관함에서 바로 올릴 수 있어요.
+        마음에 드는 컵케이크를 진열장에 올려 보세요. 방금 만든 결과 카드에서 바로 올릴 수 있어요.
       </div>
     `;
   } else {
@@ -716,10 +809,9 @@ function renderShowcase() {
         const record = state.collection[recipe.id];
         return `
           <article class="showcase-card">
-            ${createCupcakeArt(recipe)}
+            ${createCupcakeArt(recipe, "small")}
             <div class="showcase-card__copy">
               <strong>${recipe.name}</strong>
-              <p>${recipe.collectionLabel} 분위기의 대표 컵케이크예요.</p>
               <div class="showcase-card__tags">
                 ${createTag(recipe.rarityLabel, "tag--bright")}
                 ${createTag(`제작 ${record?.count ?? 0}회`)}
@@ -805,6 +897,7 @@ function render() {
   syncDeliveryBoxes();
   renderHeader();
   renderCountdown();
+  renderInventoryOverview();
   renderDailyRecipe();
   renderIngredientBoard();
   renderSelectionPreview();
