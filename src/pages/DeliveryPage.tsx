@@ -2,6 +2,7 @@ import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { MAX_PENDING_BOXES } from "../config/game";
 import { getDailyRecipe } from "../data/gameData";
+import { getRecipePresentation } from "../data/specialCupcakes";
 import { getTodayKey } from "../lib/gameLogic";
 import { useGameStore } from "../store/gameStore";
 
@@ -30,6 +31,7 @@ export function DeliveryPage({ now }: DeliveryPageProps) {
 
   const todayKey = getTodayKey(now);
   const dailyRecipe = getDailyRecipe(todayKey);
+  const dailyRecipePresentation = getRecipePresentation(dailyRecipe);
   const canClaimDailyGift = lastDailyClaimDate !== todayKey;
   const challengeCompleted = lastDailyChallengeDate === todayKey;
 
@@ -65,8 +67,12 @@ export function DeliveryPage({ now }: DeliveryPageProps) {
               <CupcakeArt recipe={dailyRecipe} size="small" />
             </div>
             <div className="daily-recipe-card__copy">
-              <strong>{dailyRecipe.name}</strong>
-              <p>{dailyRecipe.ingredients.map((ingredient) => ingredient.name).join(" + ")}</p>
+              <strong>{dailyRecipePresentation.name}</strong>
+              <p>
+                {dailyRecipePresentation.specialCupcake
+                  ? dailyRecipePresentation.description
+                  : dailyRecipe.ingredients.map((ingredient) => ingredient.name).join(" + ")}
+              </p>
               <div className="daily-recipe-card__tags">
                 <Tag label={dailyRecipe.collectionLabel} />
                 <Tag label={dailyRecipe.rarityLabel} bright />

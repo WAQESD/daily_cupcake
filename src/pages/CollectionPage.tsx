@@ -2,6 +2,7 @@ import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { COLLECTION_META, RARITY_META, RECIPE_MAP, RECIPES } from "../data/gameData";
+import { getRecipePresentation } from "../data/specialCupcakes";
 import { getDiscoveryProgressPercent } from "../lib/gameLogic";
 import { useGameStore } from "../store/gameStore";
 
@@ -30,9 +31,10 @@ export function CollectionPage() {
         return true;
       }
 
+      const presentation = getRecipePresentation(recipe);
       const haystack = [
-        recipe.name,
-        recipe.description,
+        presentation.name,
+        presentation.description,
         recipe.collectionLabel,
         ...recipe.ingredients.map((ingredient) => ingredient.name),
       ]
@@ -73,7 +75,7 @@ export function CollectionPage() {
             <span
               key={recipe.id}
               className={`dex-matrix__cell ${discoveredSet.has(recipe.id) ? "dex-matrix__cell--on" : ""}`}
-              title={discoveredSet.has(recipe.id) ? recipe.name : "잠긴 레시피"}
+              title={discoveredSet.has(recipe.id) ? getRecipePresentation(recipe).name : "잠긴 레시피"}
             />
           ))}
         </div>
@@ -124,27 +126,31 @@ export function CollectionPage() {
           {filteredRecipes.length === 0 ? (
             <div className="empty-card">아직 조건에 맞는 레시피가 없어요. 새로운 컵케이크를 구워 도감을 채워 보세요.</div>
           ) : (
-            filteredRecipes.map((recipe) => (
-              <article key={recipe.id} className="recipe-card">
-                <CupcakeArt recipe={recipe} size="small" />
-                <div className="recipe-card__copy">
-                  <div className="recipe-card__header">
-                    <strong>{recipe.name}</strong>
-                    <span className="recipe-card__count">{`제작 ${collection[recipe.id]?.count ?? 0}회`}</span>
+            filteredRecipes.map((recipe) => {
+              const presentation = getRecipePresentation(recipe);
+
+              return (
+                <article key={recipe.id} className="recipe-card">
+                  <CupcakeArt recipe={recipe} size="small" />
+                  <div className="recipe-card__copy">
+                    <div className="recipe-card__header">
+                      <strong>{presentation.name}</strong>
+                      <span className="recipe-card__count">{`제작 ${collection[recipe.id]?.count ?? 0}회`}</span>
+                    </div>
+                    <p>{presentation.description}</p>
+                    <div className="recipe-card__ingredients">
+                      {recipe.ingredients.map((ingredient) => (
+                        <Tag key={`${recipe.id}-${ingredient.id}`} label={ingredient.name} />
+                      ))}
+                    </div>
+                    <div className="recipe-card__footer">
+                      <Tag label={recipe.collectionLabel} />
+                      <Tag label={recipe.rarityLabel} bright />
+                    </div>
                   </div>
-                  <p>{recipe.description}</p>
-                  <div className="recipe-card__ingredients">
-                    {recipe.ingredients.map((ingredient) => (
-                      <Tag key={`${recipe.id}-${ingredient.id}`} label={ingredient.name} />
-                    ))}
-                  </div>
-                  <div className="recipe-card__footer">
-                    <Tag label={recipe.collectionLabel} />
-                    <Tag label={recipe.rarityLabel} bright />
-                  </div>
-                </div>
-              </article>
-            ))
+                </article>
+              );
+            })
           )}
         </div>
       </section>

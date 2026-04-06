@@ -2,6 +2,7 @@ import showcaseShelf from "../../assets/images/showcase-shelf.png";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { RECIPE_MAP } from "../data/gameData";
+import { getRecipePresentation } from "../data/specialCupcakes";
 import { useGameStore } from "../store/gameStore";
 
 export function ShowcasePage() {
@@ -45,21 +46,25 @@ export function ShowcasePage() {
           {favoriteRecipes.length === 0 ? (
             <div className="empty-card">마음에 드는 컵케이크를 진열장에 올려 보세요. 방금 만든 결과 카드에서 바로 올릴 수 있어요.</div>
           ) : (
-            favoriteRecipes.map((recipe) => (
-              <article key={recipe.id} className="showcase-card">
-                <CupcakeArt recipe={recipe} size="small" />
-                <div className="showcase-card__copy">
-                  <strong>{recipe.name}</strong>
-                  <div className="showcase-card__tags">
-                    <Tag label={recipe.rarityLabel} bright />
-                    <Tag label={`제작 ${collection[recipe.id]?.count ?? 0}회`} />
+            favoriteRecipes.map((recipe) => {
+              const presentation = getRecipePresentation(recipe);
+
+              return (
+                <article key={recipe.id} className="showcase-card">
+                  <CupcakeArt recipe={recipe} size="small" />
+                  <div className="showcase-card__copy">
+                    <strong>{presentation.name}</strong>
+                    <div className="showcase-card__tags">
+                      <Tag label={recipe.rarityLabel} bright />
+                      <Tag label={`제작 ${collection[recipe.id]?.count ?? 0}회`} />
+                    </div>
+                    <button type="button" className="mini-button" onClick={() => toggleFavorite(recipe.id)}>
+                      진열장에서 내리기
+                    </button>
                   </div>
-                  <button type="button" className="mini-button" onClick={() => toggleFavorite(recipe.id)}>
-                    진열장에서 내리기
-                  </button>
-                </div>
-              </article>
-            ))
+                </article>
+              );
+            })
           )}
         </div>
       </section>
@@ -79,13 +84,14 @@ export function ShowcasePage() {
           ) : (
             craftedRecipes.map(({ recipe, record }) => {
               const isFavorite = favorites.includes(recipe.id);
+              const presentation = getRecipePresentation(recipe);
 
               return (
                 <article key={recipe.id} className="crafted-card">
                   <CupcakeArt recipe={recipe} size="small" />
                   <div className="crafted-card__copy">
-                    <strong>{recipe.name}</strong>
-                    <p>{recipe.description}</p>
+                    <strong>{presentation.name}</strong>
+                    <p>{presentation.description}</p>
                     <div className="crafted-card__footer">
                       <Tag label={`보유 ${record.count}개`} />
                       <Tag label={recipe.collectionLabel} />

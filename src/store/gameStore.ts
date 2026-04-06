@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { BOXES_PER_DAILY_GIFT, SHOWCASE_LIMIT } from "../config/game";
 import { CATEGORY_META, INGREDIENT_GROUPS, getDailyRecipe, getRecipeFromSelection } from "../data/gameData";
+import { getRecipePresentation } from "../data/specialCupcakes";
 import {
   applyIngredientReward,
   generateDeliveryBox,
@@ -165,6 +166,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const now = Date.now();
     const todayKey = getTodayKey(now);
+    const recipePresentation = getRecipePresentation(recipe);
 
     set((state) => {
       const inventory = { ...state.inventory };
@@ -208,8 +210,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lastDailyChallengeDate,
         challengeMessage,
         craftMessage: firstDiscovery
-          ? `새 레시피를 발견했어요. ${recipe.name} 도감이 열렸어요.`
-          : `${recipe.name}를 다시 만들었어요. 진열장에 예쁘게 올려 보세요.`,
+          ? `새 레시피를 발견했어요. ${recipePresentation.name} 도감이 열렸어요.`
+          : `${recipePresentation.name}를 다시 만들었어요. 진열장에 예쁘게 올려 보세요.`,
       };
     });
   },

@@ -3,6 +3,7 @@ import ovenStage from "../../assets/images/oven-stage.png";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP, RECIPES, getRecipeFromSelection } from "../data/gameData";
+import { getRecipePresentation } from "../data/specialCupcakes";
 import {
   getCategoryTotal,
   getSelectedCount,
@@ -50,6 +51,8 @@ export function BakeryPage() {
   const lastCraftedRecipe = lastCraftedRecipeId
     ? RECIPES.find((recipe) => recipe.id === lastCraftedRecipeId) ?? null
     : null;
+  const selectedRecipePresentation = selectedRecipe ? getRecipePresentation(selectedRecipe) : null;
+  const lastCraftedRecipePresentation = lastCraftedRecipe ? getRecipePresentation(lastCraftedRecipe) : null;
   const lastCraftedCount = lastCraftedRecipe ? collection[lastCraftedRecipe.id]?.count ?? 0 : 0;
   const isFavorite = lastCraftedRecipe ? favorites.includes(lastCraftedRecipe.id) : false;
 
@@ -162,7 +165,7 @@ export function BakeryPage() {
                     discoveredRecipeIds.includes(selectedRecipe.id) ? (
                       <>
                         <strong>알고 있는 레시피</strong>
-                        <p>{`${selectedRecipe.name} 조합이에요. 빠르게 다시 만들 수 있어요.`}</p>
+                        <p>{`${selectedRecipePresentation?.name ?? selectedRecipe.name} 조합이에요. 빠르게 다시 만들 수 있어요.`}</p>
                       </>
                     ) : (
                       <>
@@ -188,7 +191,7 @@ export function BakeryPage() {
                     <CupcakeArt recipe={lastCraftedRecipe} />
                     <div className="result-card__copy">
                       <div className="result-card__heading">
-                        <strong>{lastCraftedRecipe.name}</strong>
+                        <strong>{lastCraftedRecipePresentation?.name ?? lastCraftedRecipe.name}</strong>
                         <button
                           type="button"
                           className="mini-button"
@@ -197,7 +200,7 @@ export function BakeryPage() {
                           {isFavorite ? "진열장에서 내리기" : "진열장에 올리기"}
                         </button>
                       </div>
-                      <p>{lastCraftedRecipe.description}</p>
+                      <p>{lastCraftedRecipePresentation?.description ?? lastCraftedRecipe.description}</p>
                       <div className="result-card__tags">
                         <Tag label={lastCraftedRecipe.collectionLabel} />
                         <Tag label={lastCraftedRecipe.rarityLabel} bright />

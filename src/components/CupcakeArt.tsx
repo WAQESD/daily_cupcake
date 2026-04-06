@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { getSpecialCupcake } from "../data/specialCupcakes";
 import type { Recipe } from "../types/game";
 
 interface CupcakeArtProps {
@@ -7,6 +8,7 @@ interface CupcakeArtProps {
 }
 
 export function CupcakeArt({ recipe, size = "medium" }: CupcakeArtProps) {
+  const specialCupcake = getSpecialCupcake(recipe.id);
   const style = {
     "--wrapper-color": recipe.palette.wrapper,
     "--cake-color": recipe.palette.cake,
@@ -22,6 +24,15 @@ export function CupcakeArt({ recipe, size = "medium" }: CupcakeArtProps) {
 
   const toppingLabel = recipe.ingredients[2]?.short ?? "";
   const finishLabel = recipe.ingredients[3]?.short ?? "";
+
+  if (specialCupcake) {
+    return (
+      <div className={`cupcake-art cupcake-art--${size} cupcake-art--special`} style={style}>
+        <div className="cupcake-art__special-glow" />
+        <img className="cupcake-art__portrait" src={specialCupcake.image} alt={specialCupcake.name} loading="lazy" />
+      </div>
+    );
+  }
 
   return (
     <div className={`cupcake-art cupcake-art--${size}`} style={style}>
