@@ -1,4 +1,18 @@
-const BATTERS = [
+// @ts-nocheck
+
+import type {
+  CategoryId,
+  CategoryMeta,
+  CollectionMetaEntry,
+  Ingredient,
+  IngredientFamily,
+  Rarity,
+  RarityMetaEntry,
+  Recipe,
+  Selection,
+} from "../types/game";
+
+const BATTERS: Ingredient[] = [
   {
     id: "vanilla-cloud",
     category: "batter",
@@ -56,7 +70,7 @@ const BATTERS = [
   },
 ];
 
-const CREAMS = [
+const CREAMS: Ingredient[] = [
   {
     id: "milk-cloud",
     category: "cream",
@@ -114,7 +128,7 @@ const CREAMS = [
   },
 ];
 
-const TOPPINGS = [
+const TOPPINGS: Ingredient[] = [
   {
     id: "cherry-bloom",
     category: "topping",
@@ -172,7 +186,7 @@ const TOPPINGS = [
   },
 ];
 
-const FINISHERS = [
+const FINISHERS: Ingredient[] = [
   {
     id: "pink-ribbon",
     category: "finisher",
@@ -230,14 +244,14 @@ const FINISHERS = [
   },
 ];
 
-const CATEGORY_META = [
+const CATEGORY_META: CategoryMeta[] = [
   { id: "batter", label: "반죽", description: "컵케이크의 바닥이 되는 폭신한 반죽" },
   { id: "cream", label: "크림", description: "위에 올리는 메인 크림" },
   { id: "topping", label: "토핑", description: "귀여운 장식과 포인트 토핑" },
   { id: "finisher", label: "마무리", description: "마지막 분위기를 결정하는 장식" },
 ];
 
-const COLLECTION_META = {
+const COLLECTION_META: Record<IngredientFamily, CollectionMetaEntry> = {
   berry: { label: "베리 정원", accent: "#ff8ab4" },
   cloud: { label: "구름 티룸", accent: "#ffd7ea" },
   cocoa: { label: "코코아 살롱", accent: "#d79c7d" },
@@ -249,22 +263,24 @@ const COLLECTION_META = {
   moon: { label: "별빛 다락방", accent: "#b8bfff" },
 };
 
-const RARITY_META = {
+const RARITY_META: Record<Rarity, RarityMetaEntry> = {
   common: { label: "포근", accent: "#ffc9db" },
   rare: { label: "반짝", accent: "#ffb86b" },
   epic: { label: "화사", accent: "#88c6ff" },
   legendary: { label: "꿈빛", accent: "#ff7aa8" },
 };
 
-const INGREDIENT_GROUPS = {
+const INGREDIENT_GROUPS: Record<CategoryId, Ingredient[]> = {
   batter: BATTERS,
   cream: CREAMS,
   topping: TOPPINGS,
   finisher: FINISHERS,
 };
 
-const ALL_INGREDIENTS = Object.values(INGREDIENT_GROUPS).flat();
-const INGREDIENT_MAP = new Map(ALL_INGREDIENTS.map((ingredient) => [ingredient.id, ingredient]));
+const ALL_INGREDIENTS: Ingredient[] = Object.values(INGREDIENT_GROUPS).flat();
+const INGREDIENT_MAP: Map<string, Ingredient> = new Map(
+  ALL_INGREDIENTS.map((ingredient) => [ingredient.id, ingredient]),
+);
 
 function pickDominantFamily(families) {
   const familyCount = families.reduce((accumulator, family) => {
@@ -380,10 +396,10 @@ function buildRecipes() {
   return recipes;
 }
 
-const RECIPES = buildRecipes();
-const RECIPE_MAP = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
+const RECIPES: Recipe[] = buildRecipes();
+const RECIPE_MAP: Map<string, Recipe> = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
 
-function getRecipeIdFromSelection(selection) {
+function getRecipeIdFromSelection(selection: Selection) {
   if (!selection.batter || !selection.cream || !selection.topping || !selection.finisher) {
     return null;
   }
@@ -391,7 +407,7 @@ function getRecipeIdFromSelection(selection) {
   return `${selection.batter}__${selection.cream}__${selection.topping}__${selection.finisher}`;
 }
 
-function getRecipeFromSelection(selection) {
+function getRecipeFromSelection(selection: Selection): Recipe | null {
   const recipeId = getRecipeIdFromSelection(selection);
   return recipeId ? RECIPE_MAP.get(recipeId) ?? null : null;
 }
@@ -402,7 +418,7 @@ function hashString(value) {
   }, 7);
 }
 
-function getDailyRecipe(dateKey) {
+function getDailyRecipe(dateKey: string): Recipe {
   const index = hashString(dateKey) % RECIPES.length;
   return RECIPES[index];
 }

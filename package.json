@@ -1,0 +1,37 @@
+{
+  "name": "daily-cupcake",
+  "private": true,
+  "version": "0.1.0",
+  "description": "React, TypeScript, Zustand로 리팩토링한 컵케이크 수집 웹 게임입니다.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WAQESD/daily_cupcake.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/WAQESD/daily_cupcake/issues"
+  },
+  "homepage": "https://github.com/WAQESD/daily_cupcake#readme",
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.3.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.5",
+    "vitest": "^4.1.2"
+  }
+}
