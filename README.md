@@ -48,3 +48,5 @@ npm run build
 5. GitHub Pages 배포
 
 `Settings > Pages`에서 Source를 `GitHub Actions`로 설정해 두면 자동 배포됩니다.
+
+<!-- Push verification update: 2026-04-07 -->
