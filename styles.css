@@ -1203,7 +1203,7 @@ input {
   height: 30px;
 }
 
-@media (max-width: 1160px) {
+@media (max-width: 980px) {
   .hero {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
   }
@@ -1239,7 +1239,7 @@ input {
   }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 920px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
