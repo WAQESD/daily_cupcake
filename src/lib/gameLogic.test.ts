@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DELIVERY_MS, MAX_PENDING_BOXES } from "../config/game";
 import { RECIPES, getDailyRecipe, getRecipeFromSelection } from "../data/gameData";
-import { synchronizePendingBoxes } from "./gameLogic";
+import { getCraftedRecipePreview, synchronizePendingBoxes } from "./gameLogic";
 import { createInitialGameState, normalizeGameState } from "./gameState";
 
 describe("game bootstrap", () => {
@@ -43,6 +43,39 @@ describe("recipes", () => {
 
   it("picks the same daily recipe for the same day", () => {
     expect(getDailyRecipe("2026-04-07").id).toBe(getDailyRecipe("2026-04-07").id);
+  });
+
+  it("returns a preview for an exact crafted combination", () => {
+    const selection = {
+      batter: "vanilla-cloud",
+      cream: "milk-cloud",
+      topping: "cherry-bloom",
+      finisher: "pink-ribbon",
+    } as const;
+    const preview = getCraftedRecipePreview(selection, {
+      "vanilla-cloud__milk-cloud__cherry-bloom__pink-ribbon": {
+        count: 3,
+        firstCraftedAt: 100,
+        lastCraftedAt: 200,
+      },
+    });
+
+    expect(preview?.recipe.id).toBe("vanilla-cloud__milk-cloud__cherry-bloom__pink-ribbon");
+    expect(preview?.record.count).toBe(3);
+  });
+
+  it("does not return a preview for an uncrafted combination", () => {
+    const preview = getCraftedRecipePreview(
+      {
+        batter: "vanilla-cloud",
+        cream: "milk-cloud",
+        topping: "cherry-bloom",
+        finisher: "pink-ribbon",
+      },
+      {},
+    );
+
+    expect(preview).toBeNull();
   });
 });
 
