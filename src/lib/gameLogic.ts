@@ -44,7 +44,7 @@ export function getNextDeliveryCountdown(
   now: number,
 ) {
   if (pendingBoxes >= MAX_PENDING_BOXES) {
-    return "蹂닿??⑥씠 媛??李쇱뼱??;
+    return "보관함이 가득 찼어요";
   }
 
   const elapsed = now - lastDeliveryResolvedAt;
