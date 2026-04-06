@@ -1,5 +1,6 @@
 import { startTransition, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { SaveTransferMenu } from "./components/SaveTransferMenu";
 import { RECIPES } from "./data/gameData";
 import { getDiscoveryProgressPercent } from "./lib/gameLogic";
 import { useNow } from "./lib/useNow";
@@ -130,6 +131,8 @@ export default function App() {
                   ))}
                 </select>
               </label>
+
+              <SaveTransferMenu />
             </div>
           </div>
         </header>

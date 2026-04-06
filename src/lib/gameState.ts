@@ -13,6 +13,29 @@ const STARTER_ITEMS: Array<[string, number]> = [
   ["sparkle-sugar", 1],
 ];
 
+const SAVE_TRANSFER_PREFIX = "daily-cupcake-save";
+const SAVE_TRANSFER_VERSION = 1;
+const REQUIRED_GAME_STATE_KEYS: Array<keyof GameState> = [
+  "inventory",
+  "selection",
+  "discoveredRecipeIds",
+  "collection",
+  "favorites",
+  "pendingBoxes",
+  "lastDeliveryResolvedAt",
+  "lastDailyClaimDate",
+  "dailyStreak",
+  "lastDailyChallengeDate",
+  "lastCraftedRecipeId",
+];
+
+const VALID_SELECTION_VALUES = {
+  batter: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "batter").map((ingredient) => ingredient.id)),
+  cream: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "cream").map((ingredient) => ingredient.id)),
+  topping: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "topping").map((ingredient) => ingredient.id)),
+  finisher: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "finisher").map((ingredient) => ingredient.id)),
+} satisfies Record<keyof Selection, Set<string>>;
+
 export const DEFAULT_SELECTION: Selection = {
   batter: null,
   cream: null,
@@ -27,6 +50,70 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function toFiniteNumber(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function bytesToBase64Url(bytes: Uint8Array) {
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64UrlToBytes(value: string) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = "=".repeat((4 - (normalized.length % 4 || 4)) % 4);
+  const binary = atob(`${normalized}${padding}`);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+async function gzipText(text: string) {
+  if (typeof CompressionStream === "undefined") {
+    throw new Error("이 브라우저는 저장 문자열 압축을 지원하지 않아요. 최신 브라우저에서 다시 시도해 주세요.");
+  }
+
+  const compressedStream = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Uint8Array(await new Response(compressedStream).arrayBuffer());
+}
+
+async function gunzipToText(bytes: Uint8Array) {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("이 브라우저는 저장 문자열 복원을 지원하지 않아요. 최신 브라우저에서 다시 시도해 주세요.");
+  }
+
+  const decompressedStream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return await new Response(decompressedStream).text();
+}
+
+function validateSaveTransferPayload(payload: unknown): asserts payload is {
+  format: string;
+  version: number;
+  data: unknown;
+} {
+  if (!isRecord(payload)) {
+    throw new Error("저장 문자열 안의 데이터 형식이 올바르지 않아요.");
+  }
+
+  if (payload.format !== SAVE_TRANSFER_PREFIX) {
+    throw new Error("이 앱에서 만든 저장 문자열이 아니에요.");
+  }
+
+  if (payload.version !== SAVE_TRANSFER_VERSION) {
+    throw new Error("지원하지 않는 저장 데이터 버전이에요.");
+  }
+
+  if (!isRecord(payload.data)) {
+    throw new Error("가져올 저장 데이터가 비어 있어요.");
+  }
+
+  const missingKeys = REQUIRED_GAME_STATE_KEYS.filter((key) => !(key in payload.data));
+  if (missingKeys.length > 0) {
+    throw new Error("필수 저장 항목이 빠져 있어 가져올 수 없어요.");
+  }
 }
 
 export function clamp(value: number, minimum: number, maximum: number) {
@@ -91,10 +178,22 @@ export function normalizeGameState(rawState: unknown, now = Date.now()): GameSta
 
   const rawSelection = isRecord(rawState.selection) ? rawState.selection : {};
   normalized.selection = {
-    batter: typeof rawSelection.batter === "string" ? rawSelection.batter : null,
-    cream: typeof rawSelection.cream === "string" ? rawSelection.cream : null,
-    topping: typeof rawSelection.topping === "string" ? rawSelection.topping : null,
-    finisher: typeof rawSelection.finisher === "string" ? rawSelection.finisher : null,
+    batter:
+      typeof rawSelection.batter === "string" && VALID_SELECTION_VALUES.batter.has(rawSelection.batter)
+        ? rawSelection.batter
+        : null,
+    cream:
+      typeof rawSelection.cream === "string" && VALID_SELECTION_VALUES.cream.has(rawSelection.cream)
+        ? rawSelection.cream
+        : null,
+    topping:
+      typeof rawSelection.topping === "string" && VALID_SELECTION_VALUES.topping.has(rawSelection.topping)
+        ? rawSelection.topping
+        : null,
+    finisher:
+      typeof rawSelection.finisher === "string" && VALID_SELECTION_VALUES.finisher.has(rawSelection.finisher)
+        ? rawSelection.finisher
+        : null,
   };
 
   const validRecipeIds = new Set(RECIPES.map((recipe) => recipe.id));
@@ -176,4 +275,52 @@ export function clearPersistedGameState() {
   }
 
   window.localStorage.removeItem(STORAGE_KEY);
+}
+
+export async function exportGameState(snapshot: GameState) {
+  const payload = JSON.stringify({
+    format: SAVE_TRANSFER_PREFIX,
+    version: SAVE_TRANSFER_VERSION,
+    storageKey: STORAGE_KEY,
+    exportedAt: new Date().toISOString(),
+    data: cloneGameState(snapshot),
+  });
+
+  const compressed = await gzipText(payload);
+  return `${SAVE_TRANSFER_PREFIX}:${SAVE_TRANSFER_VERSION}:${bytesToBase64Url(compressed)}`;
+}
+
+export async function importGameState(rawValue: string, now = Date.now()) {
+  const trimmedValue = rawValue.trim();
+  if (!trimmedValue) {
+    throw new Error("가져올 문자열을 먼저 붙여넣어 주세요.");
+  }
+
+  const [format, version, encoded, ...rest] = trimmedValue.split(":");
+  if (!format || !version || !encoded || rest.length > 0) {
+    throw new Error("저장 문자열 형식이 올바르지 않아요.");
+  }
+
+  if (format !== SAVE_TRANSFER_PREFIX || version !== String(SAVE_TRANSFER_VERSION)) {
+    throw new Error("지원하지 않는 저장 문자열이에요.");
+  }
+
+  let decodedText = "";
+  try {
+    decodedText = await gunzipToText(base64UrlToBytes(encoded));
+  } catch (error) {
+    console.error("저장 문자열을 해제하지 못했습니다.", error);
+    throw new Error("문자열을 풀지 못했어요. 손상되었거나 잘못된 데이터예요.");
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(decodedText);
+  } catch (error) {
+    console.error("저장 문자열의 JSON 파싱에 실패했습니다.", error);
+    throw new Error("저장 문자열 안의 데이터 형식이 올바르지 않아요.");
+  }
+
+  validateSaveTransferPayload(payload);
+  return normalizeGameState(payload.data, now);
 }

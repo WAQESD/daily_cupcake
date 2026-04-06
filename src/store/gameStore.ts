@@ -14,6 +14,7 @@ import {
 } from "../lib/gameLogic";
 import {
   clearPersistedGameState,
+  cloneGameState,
   createInitialGameState,
   DEFAULT_SELECTION,
   loadPersistedGameState,
@@ -30,6 +31,7 @@ const DEFAULT_UI_STATE: UiState = {
 export interface GameStore extends GameState, UiState {
   activePage: PageId;
   setActivePage: (page: PageId) => void;
+  replaceGameState: (nextState: GameState) => void;
   syncDeliveryBoxes: (now?: number) => void;
   claimPendingBoxes: () => void;
   claimDailyGift: () => void;
@@ -63,6 +65,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setActivePage: (activePage) => {
     set({ activePage });
+  },
+
+  replaceGameState: (nextState) => {
+    const snapshot = cloneGameState(nextState);
+    set((state) => ({
+      ...snapshot,
+      activePage: state.activePage,
+      deliveryMessage: "저장 데이터를 가져와 현재 진행 상태를 복원했어요.",
+      craftMessage: "",
+      challengeMessage: "",
+    }));
   },
 
   syncDeliveryBoxes: (now = Date.now()) => {
