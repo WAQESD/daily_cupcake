@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>컵케이크 마을</title>
+    <meta
+      name="description"
+      content="랜덤 재료를 모아 귀엽고 아기자기한 컵케이크를 만들고, 도감과 진열장을 채워 나가는 한글 수집 게임"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="sky-decor sky-decor--left"></div>
+    <div class="sky-decor sky-decor--right"></div>
+
+    <main class="app-shell">
+      <header class="hero panel">
+        <div class="hero__copy">
+          <p class="eyebrow">핑크 도트 베이커리</p>
+          <h1>컵케이크 마을</h1>
+          <p class="hero__text">
+            재료 배달함을 열고, 오븐 테이블에서 조합을 실험하고, 도감과 진열장을
+            천천히 채워 나가는 데일리 컵케이크 수집 게임이에요.
+          </p>
+          <div class="hero__chips">
+            <span class="chip">로컬 저장</span>
+            <span class="chip">데일리 보상</span>
+            <span class="chip">625종 레시피</span>
+          </div>
+        </div>
+        <div class="hero__status">
+          <div class="status-card">
+            <span class="status-card__label">오늘의 접속</span>
+            <strong id="todayStatus">자정(KST) 기준 초기화</strong>
+          </div>
+          <div class="status-card">
+            <span class="status-card__label">다음 재료 배달</span>
+            <strong id="nextDeliveryCountdown">계산 중...</strong>
+          </div>
+          <button id="dailyGiftButton" class="pixel-button pixel-button--primary">
+            데일리 오븐 선물 받기
+          </button>
+        </div>
+      </header>
+
+      <section class="stats-grid">
+        <article class="stat-box panel">
+          <span class="stat-box__label">발견한 레시피</span>
+          <strong id="discoveredCount">0 / 625</strong>
+          <span id="discoveryPercent" class="stat-box__sub">0%</span>
+        </article>
+        <article class="stat-box panel">
+          <span class="stat-box__label">만든 컵케이크</span>
+          <strong id="craftedCount">0개</strong>
+          <span id="craftedUniqueCount" class="stat-box__sub">유니크 0종</span>
+        </article>
+        <article class="stat-box panel">
+          <span class="stat-box__label">배달 상자</span>
+          <strong id="pendingBoxesCount">0상자</strong>
+          <span id="inventoryTotal" class="stat-box__sub">재료 0개 보관 중</span>
+        </article>
+        <article class="stat-box panel">
+          <span class="stat-box__label">연속 출석</span>
+          <strong id="streakCount">0일</strong>
+          <span id="favoriteCount" class="stat-box__sub">진열 중 0종</span>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">데일리 루프</p>
+            <h2>재료 배달함</h2>
+          </div>
+          <button id="claimBoxesButton" class="pixel-button">
+            배달 상자 열기
+          </button>
+        </div>
+        <div class="delivery-grid">
+          <article class="delivery-card">
+            <h3>랜덤 재료 상자</h3>
+            <p>
+              90초마다 상자가 1개씩 도착하고, 상자 하나에는 반죽, 크림, 토핑,
+              마무리 재료가 하나씩 들어 있어요.
+            </p>
+            <div class="delivery-meta">
+              <span id="pendingBoxesLabel">현재 0상자 대기 중</span>
+              <span id="boxCapLabel">최대 12상자까지 보관</span>
+            </div>
+            <div id="deliveryMessage" class="message-box" aria-live="polite"></div>
+          </article>
+          <article class="delivery-card">
+            <h3>오늘의 추천 레시피</h3>
+            <div id="dailyRecipeCard" class="daily-recipe-card"></div>
+            <div id="dailyChallengeMessage" class="message-box" aria-live="polite"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">제작 공간</p>
+            <h2>오븐 테이블</h2>
+          </div>
+          <div class="mix-actions">
+            <button id="craftButton" class="pixel-button pixel-button--primary">
+              컵케이크 굽기
+            </button>
+            <button id="clearSelectionButton" class="pixel-button pixel-button--ghost">
+              선택 비우기
+            </button>
+          </div>
+        </div>
+        <div class="studio-layout">
+          <div id="ingredientBoard" class="ingredient-board"></div>
+          <aside class="mix-preview">
+            <div class="mix-preview__current">
+              <h3>현재 조합</h3>
+              <div id="selectionPreview"></div>
+            </div>
+            <div class="mix-preview__result">
+              <h3>방금 완성한 컵케이크</h3>
+              <div id="craftResult" class="result-card result-card--empty">
+                아직 오븐에서 나온 컵케이크가 없어요.
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">수집 기록</p>
+            <h2>레시피 도감</h2>
+          </div>
+          <div class="dex-controls">
+            <label>
+              희귀도
+              <select id="rarityFilter"></select>
+            </label>
+            <label>
+              테마
+              <select id="collectionFilter"></select>
+            </label>
+            <label class="dex-controls__search">
+              검색
+              <input id="searchInput" type="search" placeholder="이름이나 재료 검색" />
+            </label>
+          </div>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-copy">
+            <strong id="dexSummary">0 / 625 발견</strong>
+            <span id="lockedSummary">잠긴 레시피 625종</span>
+          </div>
+          <div class="progress-bar">
+            <div id="progressBarFill" class="progress-bar__fill"></div>
+          </div>
+        </div>
+
+        <div id="dexMatrix" class="dex-matrix" aria-label="도감 진행도"></div>
+        <div id="recipeList" class="recipe-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">특별한 공간</p>
+            <h2>분홍 티파티 진열장</h2>
+          </div>
+          <span class="section-heading__note">좋아하는 컵케이크를 최대 6종까지 올릴 수 있어요.</span>
+        </div>
+        <div id="showcaseList" class="showcase-list"></div>
+        <div id="craftedList" class="crafted-list"></div>
+      </section>
+
+      <section class="panel footer-panel">
+        <div>
+          <h2>저장 안내</h2>
+          <p>
+            진행 상황은 브라우저 로컬 스토리지에 저장돼요. GitHub Pages에 올려도
+            같은 브라우저에서는 이어서 플레이할 수 있어요.
+          </p>
+        </div>
+        <button id="resetButton" class="pixel-button pixel-button--danger">
+          저장 초기화
+        </button>
+      </section>
+    </main>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
