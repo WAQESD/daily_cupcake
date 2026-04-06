@@ -11,6 +11,7 @@ export type IngredientFamily =
   | "star"
   | "moon";
 
+export type IngredientRank = "base" | "refined";
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 
 export type PageId = "home" | "bakery" | "delivery" | "collection" | "showcase";
@@ -21,6 +22,7 @@ export interface Ingredient {
   name: string;
   short: string;
   family: IngredientFamily;
+  rank: IngredientRank;
   rarity: number;
   dropWeight: number;
   color: string;
@@ -36,6 +38,11 @@ export interface CategoryMeta {
 export interface CollectionMetaEntry {
   label: string;
   accent: string;
+}
+
+export interface IngredientRankMetaEntry {
+  label: string;
+  description: string;
 }
 
 export interface RarityMetaEntry {
@@ -68,6 +75,34 @@ export interface Recipe {
   ingredientIds: Record<CategoryId, string>;
   ingredients: Ingredient[];
   palette: RecipePalette;
+}
+
+export interface MixingCupcakeRecipe {
+  id: string;
+  name: string;
+  description: string;
+  collection: IngredientFamily;
+  collectionLabel: string;
+  rarity: Rarity;
+  rarityLabel: string;
+  ingredientIds: string[];
+  ingredients: Ingredient[];
+  palette: RecipePalette;
+}
+
+export interface IngredientUpgradeRecipe {
+  id: string;
+  ingredientIds: string[];
+  ingredients: Ingredient[];
+  resultIngredientId: string;
+  resultRank: IngredientRank;
+  note: string;
+}
+
+export interface FallbackIngredientPool {
+  rank: IngredientRank;
+  ingredientIds: string[];
+  note: string;
 }
 
 export type Inventory = Record<string, number>;

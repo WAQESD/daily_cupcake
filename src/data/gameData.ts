@@ -1,16 +1,34 @@
-// @ts-nocheck
-
 import type {
   CategoryId,
   CategoryMeta,
   CollectionMetaEntry,
+  FallbackIngredientPool,
   Ingredient,
   IngredientFamily,
+  IngredientRank,
+  IngredientRankMetaEntry,
+  IngredientUpgradeRecipe,
+  MixingCupcakeRecipe,
   Rarity,
   RarityMetaEntry,
   Recipe,
+  RecipePalette,
   Selection,
 } from "../types/game";
+
+type FreeformCupcakeRecipeSpec = {
+  id: string;
+  name: string;
+  description: string;
+  ingredientIds: string[];
+};
+
+type IngredientUpgradeRecipeSpec = {
+  id: string;
+  ingredientIds: string[];
+  resultIngredientId: string;
+  note: string;
+};
 
 const BATTERS: Ingredient[] = [
   {
@@ -19,6 +37,7 @@ const BATTERS: Ingredient[] = [
     name: "바닐라 구름 반죽",
     short: "바닐라",
     family: "cloud",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#ffd6b5",
@@ -30,6 +49,7 @@ const BATTERS: Ingredient[] = [
     name: "초코 퍼프 반죽",
     short: "초코",
     family: "cocoa",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#c69272",
@@ -41,6 +61,7 @@ const BATTERS: Ingredient[] = [
     name: "딸기 요정 반죽",
     short: "딸기",
     family: "berry",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#ff9eb5",
@@ -52,6 +73,7 @@ const BATTERS: Ingredient[] = [
     name: "말차 숲 반죽",
     short: "말차",
     family: "forest",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#b6d7a8",
@@ -63,6 +85,7 @@ const BATTERS: Ingredient[] = [
     name: "레몬 선샤인 반죽",
     short: "레몬",
     family: "sun",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#ffe28a",
@@ -77,6 +100,7 @@ const CREAMS: Ingredient[] = [
     name: "우유 구름 크림",
     short: "우유구름",
     family: "cloud",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#fff7f9",
@@ -88,6 +112,7 @@ const CREAMS: Ingredient[] = [
     name: "딸기 버터 크림",
     short: "딸기버터",
     family: "berry",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#ffbdd4",
@@ -99,6 +124,7 @@ const CREAMS: Ingredient[] = [
     name: "크림치즈 크림",
     short: "크림치즈",
     family: "garden",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#fff1d6",
@@ -110,6 +136,7 @@ const CREAMS: Ingredient[] = [
     name: "솜사탕 크림",
     short: "솜사탕",
     family: "dream",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#ffd3ef",
@@ -121,6 +148,7 @@ const CREAMS: Ingredient[] = [
     name: "카라멜 리본 크림",
     short: "카라멜",
     family: "cocoa",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#e6b588",
@@ -135,6 +163,7 @@ const TOPPINGS: Ingredient[] = [
     name: "체리 블룸 토핑",
     short: "체리",
     family: "berry",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#ff6f91",
@@ -146,6 +175,7 @@ const TOPPINGS: Ingredient[] = [
     name: "하트 스프링클 토핑",
     short: "하트",
     family: "dream",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#ff94c2",
@@ -157,6 +187,7 @@ const TOPPINGS: Ingredient[] = [
     name: "토끼 마시멜로 토핑",
     short: "토끼",
     family: "cloud",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#fffdf8",
@@ -168,6 +199,7 @@ const TOPPINGS: Ingredient[] = [
     name: "쿠키 스타 토핑",
     short: "쿠키별",
     family: "star",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#d0a77d",
@@ -179,6 +211,7 @@ const TOPPINGS: Ingredient[] = [
     name: "블루베리 진주 토핑",
     short: "블루진주",
     family: "moon",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#8898ff",
@@ -193,6 +226,7 @@ const FINISHERS: Ingredient[] = [
     name: "분홍 리본 마무리",
     short: "리본",
     family: "berry",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#ff8fb8",
@@ -204,6 +238,7 @@ const FINISHERS: Ingredient[] = [
     name: "반짝 슈가 마무리",
     short: "반짝",
     family: "star",
+    rank: "base",
     rarity: 1,
     dropWeight: 8,
     color: "#fff6f0",
@@ -215,6 +250,7 @@ const FINISHERS: Ingredient[] = [
     name: "꽃잎 캔디 마무리",
     short: "꽃잎",
     family: "garden",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#ffb7d2",
@@ -226,6 +262,7 @@ const FINISHERS: Ingredient[] = [
     name: "별가루 마무리",
     short: "별가루",
     family: "moon",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#c3caff",
@@ -237,6 +274,7 @@ const FINISHERS: Ingredient[] = [
     name: "허니 시럽 마무리",
     short: "허니",
     family: "sun",
+    rank: "refined",
     rarity: 2,
     dropWeight: 5,
     color: "#ffc95c",
@@ -263,6 +301,17 @@ const COLLECTION_META: Record<IngredientFamily, CollectionMetaEntry> = {
   moon: { label: "별빛 다락방", accent: "#b8bfff" },
 };
 
+const INGREDIENT_RANK_META: Record<IngredientRank, IngredientRankMetaEntry> = {
+  base: {
+    label: "기본 등급",
+    description: "배달 상자에서 자주 얻고 자유 조합의 출발점이 되는 재료",
+  },
+  refined: {
+    label: "승급 등급",
+    description: "특정 조합이나 희귀 상자에서 얻는 상위 재료",
+  },
+};
+
 const RARITY_META: Record<Rarity, RarityMetaEntry> = {
   common: { label: "포근", accent: "#ffc9db" },
   rare: { label: "반짝", accent: "#ffb86b" },
@@ -282,41 +331,54 @@ const INGREDIENT_MAP: Map<string, Ingredient> = new Map(
   ALL_INGREDIENTS.map((ingredient) => [ingredient.id, ingredient]),
 );
 
-function pickDominantFamily(families) {
-  const familyCount = families.reduce((accumulator, family) => {
-    accumulator[family] = (accumulator[family] ?? 0) + 1;
+function pickDominantFamily(ingredients: Ingredient[]): IngredientFamily {
+  const familyCount = ingredients.reduce<Map<IngredientFamily, number>>((accumulator, ingredient) => {
+    accumulator.set(ingredient.family, (accumulator.get(ingredient.family) ?? 0) + 1);
     return accumulator;
-  }, {});
+  }, new Map<IngredientFamily, number>());
 
-  return Object.entries(familyCount).sort((left, right) => {
+  return [...familyCount.entries()].sort((left, right) => {
     if (right[1] !== left[1]) {
       return right[1] - left[1];
     }
     return left[0].localeCompare(right[0], "ko");
-  })[0][0];
+  })[0]?.[0] ?? "cloud";
 }
 
-function computeRarityScore(parts) {
+function computeLegacyRarityScore(parts: Ingredient[]) {
   const baseScore = parts.reduce((sum, item) => sum + item.rarity, 0);
   let synergy = 0;
 
-  if (parts[0].family === parts[1].family) {
+  if (parts[0]?.family === parts[1]?.family) {
     synergy += 2;
   }
-  if (parts[2].family === parts[3].family) {
+  if (parts[2]?.family === parts[3]?.family) {
     synergy += 2;
   }
 
-  const familyCount = parts.reduce((accumulator, item) => {
-    accumulator[item.family] = (accumulator[item.family] ?? 0) + 1;
+  const familyCount = parts.reduce<Map<IngredientFamily, number>>((accumulator, item) => {
+    accumulator.set(item.family, (accumulator.get(item.family) ?? 0) + 1);
     return accumulator;
-  }, {});
+  }, new Map<IngredientFamily, number>());
 
-  synergy += Math.max(...Object.values(familyCount)) - 1;
+  const dominantCount = Math.max(...familyCount.values(), 1);
+  synergy += dominantCount - 1;
   return baseScore + synergy;
 }
 
-function classifyRarity(score) {
+function computeMixingRarityScore(ingredients: Ingredient[]) {
+  const baseScore = ingredients.reduce((sum, ingredient) => sum + ingredient.rarity, 0);
+  const familyCount = ingredients.reduce<Map<IngredientFamily, number>>((accumulator, ingredient) => {
+    accumulator.set(ingredient.family, (accumulator.get(ingredient.family) ?? 0) + 1);
+    return accumulator;
+  }, new Map<IngredientFamily, number>());
+
+  const dominantCount = Math.max(...familyCount.values(), 1);
+  const uniqueCategories = new Set(ingredients.map((ingredient) => ingredient.category)).size;
+  return baseScore + (dominantCount - 1) + Math.max(0, uniqueCategories - 2);
+}
+
+function classifyRarity(score: number): Rarity {
   if (score >= 10) {
     return "legendary";
   }
@@ -329,16 +391,53 @@ function classifyRarity(score) {
   return "common";
 }
 
-function buildRecipeDescription(batter, cream, topping, finisher, collectionLabel) {
+function buildLegacyRecipeDescription(
+  batter: Ingredient,
+  cream: Ingredient,
+  topping: Ingredient,
+  finisher: Ingredient,
+  collectionLabel: string,
+) {
   return `${batter.name} 위에 ${cream.name}을 풍성하게 올리고 ${topping.name}와 ${finisher.name}로 마무리한 ${collectionLabel} 시그니처 컵케이크.`;
 }
 
-function buildRecipeTitle(batter, cream, topping, finisher) {
+function buildLegacyRecipeTitle(
+  batter: Ingredient,
+  cream: Ingredient,
+  topping: Ingredient,
+  finisher: Ingredient,
+) {
   return `${finisher.short} ${cream.short} ${batter.short} ${topping.short} 컵케이크`;
 }
 
+function buildPaletteFromIngredients(
+  ingredients: Ingredient[],
+  rarity = classifyRarity(computeMixingRarityScore(ingredients)),
+  collection = pickDominantFamily(ingredients),
+): RecipePalette {
+  const batter = ingredients.find((ingredient) => ingredient.category === "batter") ?? ingredients[0];
+  const cream = ingredients.find((ingredient) => ingredient.category === "cream") ?? ingredients[1] ?? ingredients[0];
+  const topping =
+    ingredients.find((ingredient) => ingredient.category === "topping") ?? ingredients.at(-1) ?? ingredients[0];
+  const finisher =
+    ingredients.find((ingredient) => ingredient.category === "finisher") ?? ingredients.at(-1) ?? ingredients[0];
+
+  return {
+    wrapper: batter.accent,
+    cake: batter.color,
+    cream: cream.color,
+    frostingAccent: cream.accent,
+    topping: topping.color,
+    topperAccent: topping.accent,
+    finish: finisher.color,
+    finishAccent: finisher.accent,
+    rarity: RARITY_META[rarity].accent,
+    collection: COLLECTION_META[collection].accent,
+  };
+}
+
 function buildRecipes() {
-  const recipes = [];
+  const recipes: Recipe[] = [];
   let index = 0;
 
   BATTERS.forEach((batter) => {
@@ -346,16 +445,16 @@ function buildRecipes() {
       TOPPINGS.forEach((topping) => {
         FINISHERS.forEach((finisher) => {
           const parts = [batter, cream, topping, finisher];
-          const dominantFamily = pickDominantFamily(parts.map((item) => item.family));
+          const dominantFamily = pickDominantFamily(parts);
           const collection = COLLECTION_META[dominantFamily];
-          const rarityScore = computeRarityScore(parts);
+          const rarityScore = computeLegacyRarityScore(parts);
           const rarity = classifyRarity(rarityScore);
 
           recipes.push({
             id: `${batter.id}__${cream.id}__${topping.id}__${finisher.id}`,
             index,
-            name: buildRecipeTitle(batter, cream, topping, finisher),
-            description: buildRecipeDescription(
+            name: buildLegacyRecipeTitle(batter, cream, topping, finisher),
+            description: buildLegacyRecipeDescription(
               batter,
               cream,
               topping,
@@ -373,18 +472,7 @@ function buildRecipes() {
               finisher: finisher.id,
             },
             ingredients: parts,
-            palette: {
-              wrapper: batter.accent,
-              cake: batter.color,
-              cream: cream.color,
-              frostingAccent: cream.accent,
-              topping: topping.color,
-              topperAccent: topping.accent,
-              finish: finisher.color,
-              finishAccent: finisher.accent,
-              rarity: RARITY_META[rarity].accent,
-              collection: collection.accent,
-            },
+            palette: buildPaletteFromIngredients(parts, rarity, dominantFamily),
           });
 
           index += 1;
@@ -396,8 +484,189 @@ function buildRecipes() {
   return recipes;
 }
 
+function resolveIngredients(ingredientIds: string[]) {
+  return ingredientIds.map((ingredientId) => {
+    const ingredient = INGREDIENT_MAP.get(ingredientId);
+    if (!ingredient) {
+      throw new Error(`Unknown ingredient id: ${ingredientId}`);
+    }
+    return ingredient;
+  });
+}
+
+function createMixingKey(ingredientIds: string[]) {
+  return [...ingredientIds].sort((left, right) => left.localeCompare(right, "en")).join("::");
+}
+
+function buildMixingCupcakeRecipe(spec: FreeformCupcakeRecipeSpec): MixingCupcakeRecipe {
+  const ingredients = resolveIngredients(spec.ingredientIds);
+  const collection = pickDominantFamily(ingredients);
+  const rarity = classifyRarity(computeMixingRarityScore(ingredients));
+
+  return {
+    id: spec.id,
+    name: spec.name,
+    description: spec.description,
+    collection,
+    collectionLabel: COLLECTION_META[collection].label,
+    rarity,
+    rarityLabel: RARITY_META[rarity].label,
+    ingredientIds: [...spec.ingredientIds],
+    ingredients,
+    palette: buildPaletteFromIngredients(ingredients, rarity, collection),
+  };
+}
+
+function buildIngredientUpgradeRecipe(spec: IngredientUpgradeRecipeSpec): IngredientUpgradeRecipe {
+  const ingredients = resolveIngredients(spec.ingredientIds);
+  const resultIngredient = INGREDIENT_MAP.get(spec.resultIngredientId);
+
+  if (!resultIngredient) {
+    throw new Error(`Unknown upgrade result ingredient id: ${spec.resultIngredientId}`);
+  }
+
+  return {
+    id: spec.id,
+    ingredientIds: [...spec.ingredientIds],
+    ingredients,
+    resultIngredientId: spec.resultIngredientId,
+    resultRank: resultIngredient.rank,
+    note: spec.note,
+  };
+}
+
+const FREEFORM_CUPCAKE_RECIPE_SPECS: FreeformCupcakeRecipeSpec[] = [
+  {
+    id: "cloud-blanket-shortcake",
+    name: "구름 담요 숏케이크",
+    description: "바닐라 구름 반죽과 우유 구름 크림만으로 폭신함을 끝까지 밀어붙인 가장 단순한 자유 조합 컵케이크.",
+    ingredientIds: ["vanilla-cloud", "milk-cloud"],
+  },
+  {
+    id: "berry-ribbon-party",
+    name: "베리 리본 파티 컵케이크",
+    description: "딸기 계열 재료를 정석졁으로 쌓아 올린 기본형 축제 조합.",
+    ingredientIds: ["strawberry-fairy", "strawberry-butter", "cherry-bloom", "pink-ribbon"],
+  },
+  {
+    id: "cocoa-caramel-comet",
+    name: "코코아 카라멜 혜성 컵케이크",
+    description: "초코 퍼프에 카라멜과 쿠키별을 더해 고소한 살롱 계열 맛을 만드는 3재료 조합.",
+    ingredientIds: ["choco-puff", "caramel-ribbon", "cookie-star"],
+  },
+  {
+    id: "dream-parade-float",
+    name: "드림 퍼레이드 플로트",
+    description: "솜사탕 크림 위에 두 가지 토핑을 겹쳐 올리는, 카테고리 고정 슬롯을 벗어난 퍼레이드형 조합.",
+    ingredientIds: ["cotton-candy", "heart-sprinkle", "bunny-marshmallow", "sparkle-sugar"],
+  },
+  {
+    id: "forest-garden-picnic",
+    name: "숲속 피크닉 가든 컵케이크",
+    description: "말차 숲, 크림치즈, 꽃잎, 토끼 마시멜로, 허니 시럽을 모두 사용하는 5재료 확장 조합.",
+    ingredientIds: [
+      "matcha-forest",
+      "cream-cheese",
+      "flower-candy",
+      "bunny-marshmallow",
+      "honey-drizzle",
+    ],
+  },
+  {
+    id: "moonlit-mist-note",
+    name: "별빛 안개 노트 컵케이크",
+    description: "우유 구름 크림과 블루베리 진주, 별가루만으로 차가운 밤 공기를 표현한 3재료 조합.",
+    ingredientIds: ["milk-cloud", "blueberry-pearl", "stardust"],
+  },
+  {
+    id: "sunbeam-cookie-brulee",
+    name: "햇살 쿠키 브륄레 컵케이크",
+    description: "레몬 선샤인 반죽에 쿠키별과 허니 시럽을 더해 밝은 오후 톤을 만드는 가벼운 조합.",
+    ingredientIds: ["lemon-sun", "cookie-star", "honey-drizzle"],
+  },
+  {
+    id: "garden-ribbon-sonata",
+    name: "가든 리본 소나타 컵케이크",
+    description: "크림치즈와 꽃잎, 체리, 리본을 묶어 정원 계열 디저트를 완성하는 안정졁인 4재료 조합.",
+    ingredientIds: ["cream-cheese", "flower-candy", "pink-ribbon", "cherry-bloom"],
+  },
+];
+
+const INGREDIENT_UPGRADE_RECIPE_SPECS: IngredientUpgradeRecipeSpec[] = [
+  {
+    id: "upgrade-cloud-marshmallow",
+    ingredientIds: ["vanilla-cloud", "milk-cloud", "sparkle-sugar"],
+    resultIngredientId: "bunny-marshmallow",
+    note: "구름 계열 기본 재료를 폭신한 상위 토핑으로 승급한다.",
+  },
+  {
+    id: "upgrade-garden-cream",
+    ingredientIds: ["vanilla-cloud", "milk-cloud", "pink-ribbon"],
+    resultIngredientId: "cream-cheese",
+    note: "부드러운 기본 조합을 진한 크림 계열 상위 재료로 전환한다.",
+  },
+  {
+    id: "upgrade-cocoa-ribbon",
+    ingredientIds: ["choco-puff", "milk-cloud", "pink-ribbon"],
+    resultIngredientId: "caramel-ribbon",
+    note: "코코아 계열 반죽을 달콤한 리본 크림으로 승급한다.",
+  },
+  {
+    id: "upgrade-star-cookie",
+    ingredientIds: ["vanilla-cloud", "heart-sprinkle", "sparkle-sugar"],
+    resultIngredientId: "cookie-star",
+    note: "가벼운 장식 조합을 단단한 상위 토핑으로 굳힌다.",
+  },
+  {
+    id: "upgrade-berry-bloom",
+    ingredientIds: ["strawberry-fairy", "strawberry-butter", "cherry-bloom"],
+    resultIngredientId: "flower-candy",
+    note: "베리 조합을 꽃잎 마무리 계열 상위 재료로 승급한다.",
+  },
+  {
+    id: "upgrade-sun-syrup",
+    ingredientIds: ["lemon-sun", "milk-cloud", "sparkle-sugar"],
+    resultIngredientId: "honey-drizzle",
+    note: "밝은 반죽 조합을 점성이 있는 허니 시럽 마무리로 응축한다.",
+  },
+];
+
 const RECIPES: Recipe[] = buildRecipes();
 const RECIPE_MAP: Map<string, Recipe> = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
+
+const FREEFORM_CUPCAKE_RECIPES: MixingCupcakeRecipe[] = FREEFORM_CUPCAKE_RECIPE_SPECS.map((spec) =>
+  buildMixingCupcakeRecipe(spec),
+);
+const FREEFORM_CUPCAKE_RECIPE_MAP = new Map(
+  FREEFORM_CUPCAKE_RECIPES.map((recipe) => [createMixingKey(recipe.ingredientIds), recipe]),
+);
+
+const INGREDIENT_UPGRADE_RECIPES: IngredientUpgradeRecipe[] = INGREDIENT_UPGRADE_RECIPE_SPECS.map((spec) =>
+  buildIngredientUpgradeRecipe(spec),
+);
+const INGREDIENT_UPGRADE_RECIPE_MAP = new Map(
+  INGREDIENT_UPGRADE_RECIPES.map((recipe) => [createMixingKey(recipe.ingredientIds), recipe]),
+);
+
+const FALLBACK_INGREDIENT_POOLS: FallbackIngredientPool[] = [
+  {
+    rank: "base",
+    ingredientIds: ALL_INGREDIENTS.filter((ingredient) => ingredient.rank === "base").map(
+      (ingredient) => ingredient.id,
+    ),
+    note: "정의된 조합표에 맞지 않으면 기본 등급 재료끼리 같은 등급 후보군에서 랜덤 결과를 고른다.",
+  },
+  {
+    rank: "refined",
+    ingredientIds: ALL_INGREDIENTS.filter((ingredient) => ingredient.rank === "refined").map(
+      (ingredient) => ingredient.id,
+    ),
+    note: "상위 재료가 섞인 경우에도 결과 예측 가능성을 위해 동일 등급 후보군 안에서만 fallback 한다.",
+  },
+];
+const FALLBACK_INGREDIENT_POOL_MAP = new Map(
+  FALLBACK_INGREDIENT_POOLS.map((pool) => [pool.rank, pool]),
+);
 
 function getRecipeIdFromSelection(selection: Selection) {
   if (!selection.batter || !selection.cream || !selection.topping || !selection.finisher) {
@@ -412,7 +681,19 @@ function getRecipeFromSelection(selection: Selection): Recipe | null {
   return recipeId ? RECIPE_MAP.get(recipeId) ?? null : null;
 }
 
-function hashString(value) {
+function getFreeformCupcakeRecipe(ingredientIds: string[]) {
+  return FREEFORM_CUPCAKE_RECIPE_MAP.get(createMixingKey(ingredientIds)) ?? null;
+}
+
+function getIngredientUpgradeRecipe(ingredientIds: string[]) {
+  return INGREDIENT_UPGRADE_RECIPE_MAP.get(createMixingKey(ingredientIds)) ?? null;
+}
+
+function getFallbackIngredientPool(rank: IngredientRank) {
+  return FALLBACK_INGREDIENT_POOL_MAP.get(rank) ?? null;
+}
+
+function hashString(value: string) {
   return Array.from(value).reduce((hash, character) => {
     return (hash * 31 + character.charCodeAt(0)) % 2147483647;
   }, 7);
@@ -425,18 +706,26 @@ function getDailyRecipe(dateKey: string): Recipe {
 
 export {
   ALL_INGREDIENTS,
+  BATTERS,
   CATEGORY_META,
   COLLECTION_META,
+  CREAMS,
+  FALLBACK_INGREDIENT_POOLS,
   FINISHERS,
+  FREEFORM_CUPCAKE_RECIPES,
   INGREDIENT_GROUPS,
   INGREDIENT_MAP,
+  INGREDIENT_RANK_META,
+  INGREDIENT_UPGRADE_RECIPES,
   RARITY_META,
   RECIPES,
   RECIPE_MAP,
   TOPPINGS,
-  BATTERS,
-  CREAMS,
+  createMixingKey,
   getDailyRecipe,
+  getFallbackIngredientPool,
+  getFreeformCupcakeRecipe,
+  getIngredientUpgradeRecipe,
   getRecipeFromSelection,
   getRecipeIdFromSelection,
 };
