@@ -1,3 +1,4 @@
+import collectionBanner from "../../assets/images/collection-banner-v1.png";
 import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
@@ -119,6 +120,10 @@ export function CollectionPage() {
             </label>
           </div>
         </div>
+
+        <figure className="page-banner page-banner--collection">
+          <img src={collectionBanner} alt="Pastel cupcake collection scrapbook scene" />
+        </figure>
 
         <div className="recipe-list">
           {filteredRecipes.length === 0 ? (
