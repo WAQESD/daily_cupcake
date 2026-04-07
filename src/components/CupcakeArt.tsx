@@ -20,19 +20,25 @@ export function CupcakeArt({ recipe, size = "medium" }: CupcakeArtProps) {
     "--collection-color": recipe.palette.collection,
   } as CSSProperties;
 
-  const toppingLabel = recipe.ingredients[2]?.short ?? "";
-  const finishLabel = recipe.ingredients[3]?.short ?? "";
+  const toppingIngredient =
+    recipe.ingredients.find((ingredient) => ingredient.category === "topping") ??
+    recipe.ingredients.at(-1) ??
+    recipe.ingredients[0];
+  const finishIngredient =
+    recipe.ingredients.find((ingredient) => ingredient.category === "finisher") ??
+    recipe.ingredients.at(0) ??
+    recipe.ingredients.at(-1);
 
   return (
     <div className={`cupcake-art cupcake-art--${size}`} style={style}>
       <div className="cupcake-art__sparkle" />
-      <div className="cupcake-art__finish">{finishLabel}</div>
+      <div className="cupcake-art__finish">{finishIngredient?.short ?? ""}</div>
       <div className="cupcake-art__cream">
         <span />
         <span />
         <span />
       </div>
-      <div className="cupcake-art__topping">{toppingLabel}</div>
+      <div className="cupcake-art__topping">{toppingIngredient?.short ?? ""}</div>
       <div className="cupcake-art__cake" />
       <div className="cupcake-art__wrapper" />
     </div>

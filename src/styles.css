@@ -777,9 +777,34 @@ p {
   gap: 14px;
 }
 
-.mix-preview__result {
+.selection-basket {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selection-token {
   display: grid;
-  gap: 14px;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 245, 249, 0.94)) padding-box,
+    linear-gradient(135deg, var(--ingredient-accent), var(--ingredient-color)) border-box;
+  text-align: left;
+  color: var(--text);
+  box-shadow: 0 4px 0 rgba(235, 176, 201, 0.72);
+  cursor: pointer;
+}
+
+.selection-token__name {
+  font-weight: 800;
+}
+
+.selection-token__meta {
+  color: var(--text-soft);
+  font-size: 0.84rem;
 }
 
 .selection-grid {
@@ -1000,11 +1025,34 @@ p {
   min-height: 190px;
 }
 
-.result-card--known-selection {
-  border: 2px solid rgba(255, 124, 173, 0.45);
+.ingredient-result-card {
+  padding: 18px;
+  border: 2px solid transparent;
+  border-radius: 24px;
   background:
-    linear-gradient(180deg, rgba(255, 251, 216, 0.95), rgba(255, 239, 247, 0.92)),
-    var(--panel-soft);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 246, 251, 0.94)) padding-box,
+    linear-gradient(135deg, var(--ingredient-accent, rgba(239, 154, 189, 0.48)), var(--ingredient-color, rgba(255, 124, 173, 0.72))) border-box;
+}
+
+.ingredient-result-card--fallback {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 246, 251, 0.94)) padding-box,
+    linear-gradient(135deg, rgba(255, 214, 181, 0.94), rgba(255, 124, 173, 0.72)) border-box;
+}
+
+.ingredient-result-card__copy {
+  display: grid;
+  gap: 10px;
+}
+
+.ingredient-result-card__name {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.ingredient-result-card__note {
+  color: var(--text-soft);
+  font-size: 0.92rem;
 }
 
 .result-card--empty {

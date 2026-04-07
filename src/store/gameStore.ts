@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { BOXES_PER_DAILY_GIFT, SHOWCASE_LIMIT } from "../config/game";
-import { CATEGORY_META, INGREDIENT_GROUPS, getDailyRecipe, getRecipeFromSelection } from "../data/gameData";
+import { INGREDIENT_GROUPS, getDailyRecipe } from "../data/gameData";
 import {
+  addIngredient,
   applyIngredientReward,
   generateDeliveryBox,
+  getRankLabel,
   getTodayKey,
   getYesterdayKey,
   hasEnoughIngredientsForSelection,
+  resolveCraftResult,
   subtractIngredient,
   summarizeRewards,
   synchronizePendingBoxes,
@@ -20,7 +23,7 @@ import {
   loadPersistedGameState,
   savePersistedGameState,
 } from "../lib/gameState";
-import type { CategoryId, GameState, PageId, UiState } from "../types/game";
+import type { GameState, PageId, UiState } from "../types/game";
 
 const DEFAULT_UI_STATE: UiState = {
   deliveryMessage: "처음 선물 상자 3개가 준비되어 있어요. 바로 열어서 시작해 보세요.",
@@ -37,7 +40,7 @@ export interface GameStore extends GameState, UiState {
   claimDailyGift: () => void;
   craftCupcake: () => void;
   clearSelection: () => void;
-  toggleSelection: (categoryId: CategoryId, ingredientId: string) => void;
+  toggleSelection: (ingredientId: string) => void;
   toggleFavorite: (recipeId: string) => void;
   resetGame: () => void;
 }
@@ -55,6 +58,7 @@ function pickGameState(state: GameStore): GameState {
     dailyStreak: state.dailyStreak,
     lastDailyChallengeDate: state.lastDailyChallengeDate,
     lastCraftedRecipeId: state.lastCraftedRecipeId,
+    lastMixResult: state.lastMixResult,
   };
 }
 
@@ -160,11 +164,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   craftCupcake: () => {
     const current = get();
-    const recipe = getRecipeFromSelection(current.selection);
 
-    if (!recipe) {
+    if (current.selection.length < 2) {
       set({
-        craftMessage: "반죽, 크림, 토핑, 마무리를 모두 골라 주세요.",
+        craftMessage: "자유 조합은 재료를 최소 2개부터 넣을 수 있어요.",
+      });
+      return;
+    }
+
+    if (current.selection.length > 5) {
+      set({
+        craftMessage: "자유 조합은 한 번에 최대 5개까지만 넣을 수 있어요.",
       });
       return;
     }
@@ -176,70 +186,122 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
+    const result = resolveCraftResult(current.selection);
+    if (!result) {
+      set({
+        craftMessage: "현재 조합으로는 결과를 만들 수 없어요. 다른 재료를 골라 보세요.",
+      });
+      return;
+    }
+
     const now = Date.now();
     const todayKey = getTodayKey(now);
 
     set((state) => {
       const inventory = { ...state.inventory };
-      CATEGORY_META.forEach(({ id }) => {
-        const ingredientId = state.selection[id];
-        if (ingredientId) {
-          subtractIngredient(inventory, ingredientId, 1);
-        }
+      state.selection.forEach((ingredientId) => {
+        subtractIngredient(inventory, ingredientId, 1);
       });
 
-      const firstDiscovery = !state.discoveredRecipeIds.includes(recipe.id);
-      const discoveredRecipeIds = firstDiscovery
-        ? [...state.discoveredRecipeIds, recipe.id]
-        : state.discoveredRecipeIds;
-
-      const existingRecord = state.collection[recipe.id];
-      const collection = {
-        ...state.collection,
-        [recipe.id]: {
-          count: (existingRecord?.count ?? 0) + 1,
-          firstCraftedAt: existingRecord?.firstCraftedAt ?? now,
-          lastCraftedAt: now,
-        },
-      };
-
+      let discoveredRecipeIds = state.discoveredRecipeIds;
+      let collection = state.collection;
+      let lastCraftedRecipeId = state.lastCraftedRecipeId;
+      let lastMixResult = state.lastMixResult;
       let challengeMessage = state.challengeMessage;
       let lastDailyChallengeDate = state.lastDailyChallengeDate;
+      let craftMessage = "";
 
-      if (recipe.id === getDailyRecipe(todayKey).id && state.lastDailyChallengeDate !== todayKey) {
-        const bonus = [...generateDeliveryBox(), weightedPick(INGREDIENT_GROUPS.cream).id];
-        applyIngredientReward(inventory, bonus);
-        lastDailyChallengeDate = todayKey;
-        challengeMessage = `오늘의 추천 레시피를 완성해서 보너스를 받았어요. ${summarizeRewards(bonus)}`;
+      if (result.type === "cupcake") {
+        const firstDiscovery = !state.discoveredRecipeIds.includes(result.recipe.id);
+        discoveredRecipeIds = firstDiscovery
+          ? [...state.discoveredRecipeIds, result.recipe.id]
+          : state.discoveredRecipeIds;
+
+        const existingRecord = state.collection[result.recipe.id];
+        collection = {
+          ...state.collection,
+          [result.recipe.id]: {
+            count: (existingRecord?.count ?? 0) + 1,
+            firstCraftedAt: existingRecord?.firstCraftedAt ?? now,
+            lastCraftedAt: now,
+          },
+        };
+
+        lastCraftedRecipeId = result.recipe.id;
+        lastMixResult = {
+          type: "cupcake",
+          recipeId: result.recipe.id,
+        };
+
+        if (result.recipe.id === getDailyRecipe(todayKey).id && state.lastDailyChallengeDate !== todayKey) {
+          const bonus = [...generateDeliveryBox(), weightedPick(INGREDIENT_GROUPS.cream).id];
+          applyIngredientReward(inventory, bonus);
+          lastDailyChallengeDate = todayKey;
+          challengeMessage = `오늘의 추천 레시피를 완성해서 보너스를 받았어요. ${summarizeRewards(bonus)}`;
+        }
+
+        craftMessage = firstDiscovery
+          ? `새 자유 조합 컵케이크를 발견했어요. ${result.recipe.name} 도감이 열렸어요.`
+          : `${result.recipe.name}를 다시 만들었어요. 제작 기록이 한 번 더 쌓였어요.`;
+      } else {
+        addIngredient(inventory, result.ingredientId, 1);
+        lastMixResult = {
+          type: "ingredient",
+          ingredientId: result.ingredientId,
+          rank: result.rank,
+          source: result.source,
+        };
+
+        craftMessage =
+          result.source === "upgrade"
+            ? `${result.ingredient.name} 재료로 승급됐어요. 다음 조합에 바로 다시 써 볼 수 있어요.`
+            : `정의된 조합이 없어 ${getRankLabel(result.rank)} 후보군에서 ${result.ingredient.name} 재료를 얻었어요.`;
       }
 
       return {
         inventory,
         discoveredRecipeIds,
         collection,
-        lastCraftedRecipeId: recipe.id,
+        lastCraftedRecipeId,
+        lastMixResult,
         lastDailyChallengeDate,
         challengeMessage,
-        craftMessage: firstDiscovery
-          ? `새 레시피를 발견했어요. ${recipe.name} 도감이 열렸어요.`
-          : `${recipe.name}를 다시 만들었어요. 진열장에 예쁘게 올려 보세요.`,
+        craftMessage,
       };
     });
   },
 
   clearSelection: () => {
     set({
-      selection: { ...DEFAULT_SELECTION },
+      selection: [...DEFAULT_SELECTION],
       craftMessage: "",
     });
   },
 
-  toggleSelection: (categoryId, ingredientId) => {
+  toggleSelection: (ingredientId) => {
+    const current = get();
+
+    if ((current.inventory[ingredientId] ?? 0) <= 0) {
+      return;
+    }
+
+    if (current.selection.includes(ingredientId)) {
+      set((state) => ({
+        selection: state.selection.filter((selectedId) => selectedId !== ingredientId),
+        craftMessage: "",
+      }));
+      return;
+    }
+
+    if (current.selection.length >= 5) {
+      set({
+        craftMessage: "자유 조합은 최대 5개까지만 넣을 수 있어요.",
+      });
+      return;
+    }
+
     set((state) => ({
-      selection: {
-        ...state.selection,
-        [categoryId]: state.selection[categoryId] === ingredientId ? null : ingredientId,
-      },
+      selection: [...state.selection, ingredientId],
       craftMessage: "",
     }));
   },
@@ -256,7 +318,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (favorites.size >= SHOWCASE_LIMIT) {
       set({
-        craftMessage: `진열장은 최대 ${SHOWCASE_LIMIT}종까지 올릴 수 있어요. 먼저 하나를 내려 주세요.`,
+        craftMessage: `진열장은 최대 ${SHOWCASE_LIMIT}종까지만 올릴 수 있어요. 먼저 하나를 내려 주세요.`,
       });
       return;
     }
