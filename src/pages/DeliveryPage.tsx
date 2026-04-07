@@ -1,3 +1,4 @@
+import deliveryBanner from "../generated/delivery-banner.png";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { MAX_PENDING_BOXES } from "../config/game";
@@ -44,6 +45,10 @@ export function DeliveryPage({ now }: DeliveryPageProps) {
           배달 상자 열기
         </button>
       </div>
+
+      <figure className="scene-banner scene-banner--delivery">
+        <img src={deliveryBanner} alt="" />
+      </figure>
 
       <div className="delivery-stack">
         <article className="delivery-card">
