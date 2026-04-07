@@ -1,4 +1,4 @@
-import showcaseShelf from "../../assets/images/showcase-shelf.png";
+import showcaseShelf from "../../assets/images/showcase-shelf-v2.png";
 import { useShallow } from "zustand/react/shallow";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
