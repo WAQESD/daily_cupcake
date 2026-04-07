@@ -1,3 +1,4 @@
+import deliveryBanner from "../../assets/images/delivery-banner.png";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { MAX_PENDING_BOXES } from "../config/game";
@@ -44,6 +45,15 @@ export function DeliveryPage({ now }: DeliveryPageProps) {
           배달 상자 열기
         </button>
       </div>
+
+      <figure className="scene-banner scene-banner--delivery">
+        <img src={deliveryBanner} alt="배달 준비를 마친 리본 상자와 컵케이크가 놓인 베이커리 일러스트" />
+        <figcaption className="scene-banner__copy">
+          <span className="scene-banner__eyebrow">오늘의 배달</span>
+          <strong>상자를 채우고 보상을 받아가세요</strong>
+          <p>리본 박스와 컵케이크를 모아 달콤한 배달 준비를 완성해요.</p>
+        </figcaption>
+      </figure>
 
       <div className="delivery-stack">
         <article className="delivery-card">

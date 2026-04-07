@@ -1,3 +1,4 @@
+import collectionBanner from "../../assets/images/collection-banner.png";
 import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
@@ -57,6 +58,15 @@ export function CollectionPage() {
           </div>
           <span className="section-heading__note">전체 진행률은 한눈에, 상세 검색은 오른쪽 목록에서 확인해요.</span>
         </div>
+
+        <figure className="scene-banner scene-banner--collection">
+          <img src={collectionBanner} alt="수집 공간에 좋아하는 컵케이크가 장식된 배경 일러스트" />
+          <figcaption className="scene-banner__copy">
+            <span className="scene-banner__eyebrow">수집 요약</span>
+            <strong>{`${discoveredCount}개 발견, ${progressPercent}% 완성`}</strong>
+            <p>희귀도와 테마, 재료로 빠르게 좁혀서 원하는 레시피를 찾아보세요.</p>
+          </figcaption>
+        </figure>
 
         <div className="progress-block">
           <div className="progress-copy">
