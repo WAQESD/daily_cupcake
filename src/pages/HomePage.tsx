@@ -1,4 +1,4 @@
-import heroBakery from "../../assets/images/hero-bakery.png";
+import heroBakery from "../../assets/images/hero-bakery-v2.png";
 import { useShallow } from "zustand/react/shallow";
 import { MAX_PENDING_BOXES, SHOWCASE_LIMIT } from "../config/game";
 import { RECIPES } from "../data/gameData";

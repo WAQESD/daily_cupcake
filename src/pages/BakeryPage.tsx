@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import ovenStage from "../../assets/images/oven-stage.png";
+import ovenStage from "../../assets/images/oven-stage-v2.png";
 import { useShallow } from "zustand/react/shallow";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
