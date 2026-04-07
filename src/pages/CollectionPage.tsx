@@ -1,3 +1,4 @@
+import collectionBanner from "../../assets/images/collection-banner-v1.png";
 import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
@@ -49,6 +50,12 @@ export function CollectionPage() {
 
   return (
     <div className="page-grid page-grid--collection">
+      <section className="panel page-banner-panel page-banner-panel--full">
+        <figure className="page-banner page-banner--collection" aria-hidden="true">
+          <img src={collectionBanner} alt="" />
+        </figure>
+      </section>
+
       <section className="panel rail-panel">
         <div className="section-heading section-heading--stack">
           <div>

@@ -146,6 +146,14 @@ select:focus-visible,
   align-items: start;
 }
 
+.page-banner-panel {
+  padding: 14px;
+}
+
+.page-banner-panel--full {
+  grid-column: 1 / -1;
+}
+
 .collection-library,
 .crafted-gallery {
   display: grid;
@@ -422,6 +430,53 @@ select:focus-visible,
   height: 100%;
   object-fit: cover;
   object-position: center;
+}
+
+.page-banner {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.96);
+  border-radius: 30px;
+  background: linear-gradient(180deg, rgba(255, 243, 248, 0.98), rgba(255, 247, 238, 0.96));
+  box-shadow:
+    inset 0 -18px 26px rgba(255, 204, 220, 0.16),
+    0 12px 30px rgba(171, 79, 117, 0.1);
+  isolation: isolate;
+}
+
+.page-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.34), transparent 24%),
+    radial-gradient(circle at 84% 18%, rgba(255, 245, 227, 0.3), transparent 18%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 245, 248, 0.14));
+  z-index: 1;
+  pointer-events: none;
+}
+
+.page-banner::after {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.74);
+  border-radius: 24px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.page-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.page-banner--delivery,
+.page-banner--collection {
+  aspect-ratio: 2 / 1;
 }
 
 .hero__status {
@@ -928,7 +983,9 @@ p {
 
 .delivery-stack {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  align-items: start;
 }
 
 .delivery-card {
@@ -1359,6 +1416,7 @@ input {
   }
 
   .inventory-category-totals,
+  .delivery-stack,
   .recipe-list,
   .crafted-list {
     grid-template-columns: 1fr;
