@@ -1,4 +1,5 @@
 import { useDeferredValue, useState } from "react";
+import collectionBanner from "../../assets/images/collection-banner.png";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { COLLECTION_META, RARITY_META, RECIPE_MAP, RECIPES } from "../data/gameData";
@@ -119,6 +120,10 @@ export function CollectionPage() {
             </label>
           </div>
         </div>
+
+        <figure className="scene-banner scene-banner--collection">
+          <img src={collectionBanner} alt="" />
+        </figure>
 
         <div className="recipe-list">
           {filteredRecipes.length === 0 ? (
