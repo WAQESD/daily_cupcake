@@ -931,6 +931,53 @@ p {
   gap: 14px;
 }
 
+.scene-banner {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: 2px solid rgba(239, 154, 189, 0.56);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 252, 254, 0.95), rgba(255, 243, 248, 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.62),
+    0 18px 34px rgba(197, 120, 152, 0.16);
+}
+
+.scene-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04)),
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.42), transparent 28%),
+    radial-gradient(circle at 82% 76%, rgba(255, 230, 239, 0.32), transparent 26%);
+  pointer-events: none;
+}
+
+.scene-banner::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.58);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.scene-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scene-banner--delivery {
+  aspect-ratio: 16 / 7;
+}
+
+.scene-banner--collection {
+  aspect-ratio: 16 / 7;
+}
+
 .delivery-card {
   display: grid;
   gap: 14px;
@@ -1428,6 +1475,10 @@ input {
 
   .oven-stage__visual {
     min-height: 320px;
+  }
+
+  .scene-banner {
+    border-radius: 24px;
   }
 }
 
