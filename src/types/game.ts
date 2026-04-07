@@ -1,4 +1,5 @@
 export type CategoryId = "batter" | "cream" | "topping" | "finisher";
+export type IngredientRank = 1 | 2;
 
 export type IngredientFamily =
   | "berry"
@@ -12,7 +13,6 @@ export type IngredientFamily =
   | "moon";
 
 export type Rarity = "common" | "rare" | "epic" | "legendary";
-
 export type PageId = "home" | "bakery" | "delivery" | "collection" | "showcase";
 
 export interface Ingredient {
@@ -21,10 +21,16 @@ export interface Ingredient {
   name: string;
   short: string;
   family: IngredientFamily;
-  rarity: number;
+  rank: IngredientRank;
   dropWeight: number;
   color: string;
   accent: string;
+}
+
+export interface IngredientRankMetaEntry {
+  label: string;
+  accent: string;
+  description: string;
 }
 
 export interface CategoryMeta {
@@ -65,13 +71,45 @@ export interface Recipe {
   collectionLabel: string;
   rarity: Rarity;
   rarityLabel: string;
-  ingredientIds: Record<CategoryId, string>;
+  ingredientIds: string[];
+  mixKey: string;
   ingredients: Ingredient[];
   palette: RecipePalette;
 }
 
+export interface CupcakeRecipeRule {
+  id: string;
+  ingredientIds: string[];
+  mixKey: string;
+  resultType: "cupcake";
+  recipeId: string;
+}
+
+export interface IngredientUpgradeRule {
+  id: string;
+  ingredientIds: string[];
+  mixKey: string;
+  resultType: "ingredient";
+  ingredientId: string;
+  resultRank: IngredientRank;
+}
+
+export interface FallbackResultPool {
+  rank: IngredientRank;
+  ingredientIds: string[];
+}
+
+export interface FreeformRecipePrototype {
+  id: string;
+  name: string;
+  ingredientIds: string[];
+  mixKey: string;
+  notes: string;
+}
+
 export type Inventory = Record<string, number>;
 export type Selection = Record<CategoryId, string | null>;
+export type MixSelection = string[];
 
 export interface RecipeCollectionRecord {
   count: number;
