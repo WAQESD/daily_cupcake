@@ -8,12 +8,10 @@ import type {
   IngredientRank,
   IngredientRankMetaEntry,
   IngredientUpgradeRecipe,
-  MixingCupcakeRecipe,
   Rarity,
   RarityMetaEntry,
   Recipe,
   RecipePalette,
-  Selection,
 } from "../types/game";
 
 type FreeformCupcakeRecipeSpec = {
@@ -436,9 +434,9 @@ function buildPaletteFromIngredients(
   };
 }
 
-function buildRecipes() {
+function buildLegacyRecipes(startIndex = 0) {
   const recipes: Recipe[] = [];
-  let index = 0;
+  let index = startIndex;
 
   BATTERS.forEach((batter) => {
     CREAMS.forEach((cream) => {
@@ -453,6 +451,7 @@ function buildRecipes() {
           recipes.push({
             id: `${batter.id}__${cream.id}__${topping.id}__${finisher.id}`,
             index,
+            kind: "legacy",
             name: buildLegacyRecipeTitle(batter, cream, topping, finisher),
             description: buildLegacyRecipeDescription(
               batter,
@@ -465,12 +464,7 @@ function buildRecipes() {
             collectionLabel: collection.label,
             rarity,
             rarityLabel: RARITY_META[rarity].label,
-            ingredientIds: {
-              batter: batter.id,
-              cream: cream.id,
-              topping: topping.id,
-              finisher: finisher.id,
-            },
+            ingredientIds: parts.map((ingredient) => ingredient.id),
             ingredients: parts,
             palette: buildPaletteFromIngredients(parts, rarity, dominantFamily),
           });
@@ -498,13 +492,15 @@ function createMixingKey(ingredientIds: string[]) {
   return [...ingredientIds].sort((left, right) => left.localeCompare(right, "en")).join("::");
 }
 
-function buildMixingCupcakeRecipe(spec: FreeformCupcakeRecipeSpec): MixingCupcakeRecipe {
+function buildMixingCupcakeRecipe(spec: FreeformCupcakeRecipeSpec, index: number): Recipe {
   const ingredients = resolveIngredients(spec.ingredientIds);
   const collection = pickDominantFamily(ingredients);
   const rarity = classifyRarity(computeMixingRarityScore(ingredients));
 
   return {
     id: spec.id,
+    index,
+    kind: "mixing",
     name: spec.name,
     description: spec.description,
     collection,
@@ -538,14 +534,14 @@ function buildIngredientUpgradeRecipe(spec: IngredientUpgradeRecipeSpec): Ingred
 const FREEFORM_CUPCAKE_RECIPE_SPECS: FreeformCupcakeRecipeSpec[] = [
   {
     id: "cloud-blanket-shortcake",
-    name: "구름 담요 숏케이크",
+    name: "구름 담요 쇼트케이크",
     description: "바닐라 구름 반죽과 우유 구름 크림만으로 폭신함을 끝까지 밀어붙인 가장 단순한 자유 조합 컵케이크.",
     ingredientIds: ["vanilla-cloud", "milk-cloud"],
   },
   {
     id: "berry-ribbon-party",
     name: "베리 리본 파티 컵케이크",
-    description: "딸기 계열 재료를 정석졁으로 쌓아 올린 기본형 축제 조합.",
+    description: "딸기 계열 재료를 정석적으로 쌓아 올린 기본형 축제 조합.",
     ingredientIds: ["strawberry-fairy", "strawberry-butter", "cherry-bloom", "pink-ribbon"],
   },
   {
@@ -587,7 +583,7 @@ const FREEFORM_CUPCAKE_RECIPE_SPECS: FreeformCupcakeRecipeSpec[] = [
   {
     id: "garden-ribbon-sonata",
     name: "가든 리본 소나타 컵케이크",
-    description: "크림치즈와 꽃잎, 체리, 리본을 묶어 정원 계열 디저트를 완성하는 안정졁인 4재료 조합.",
+    description: "크림치즈와 꽃잎, 체리, 리본을 묶어 정원 계열 디저트를 완성하는 안정적인 4재료 조합.",
     ingredientIds: ["cream-cheese", "flower-candy", "pink-ribbon", "cherry-bloom"],
   },
 ];
@@ -631,14 +627,15 @@ const INGREDIENT_UPGRADE_RECIPE_SPECS: IngredientUpgradeRecipeSpec[] = [
   },
 ];
 
-const RECIPES: Recipe[] = buildRecipes();
-const RECIPE_MAP: Map<string, Recipe> = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
-
-const FREEFORM_CUPCAKE_RECIPES: MixingCupcakeRecipe[] = FREEFORM_CUPCAKE_RECIPE_SPECS.map((spec) =>
-  buildMixingCupcakeRecipe(spec),
+const RECIPES: Recipe[] = FREEFORM_CUPCAKE_RECIPE_SPECS.map((spec, index) =>
+  buildMixingCupcakeRecipe(spec, index),
 );
+const ACTIVE_RECIPE_IDS = new Set(RECIPES.map((recipe) => recipe.id));
+const LEGACY_RECIPES: Recipe[] = buildLegacyRecipes(RECIPES.length);
+const RECIPE_MAP: Map<string, Recipe> = new Map([...RECIPES, ...LEGACY_RECIPES].map((recipe) => [recipe.id, recipe]));
+
 const FREEFORM_CUPCAKE_RECIPE_MAP = new Map(
-  FREEFORM_CUPCAKE_RECIPES.map((recipe) => [createMixingKey(recipe.ingredientIds), recipe]),
+  RECIPES.map((recipe) => [createMixingKey(recipe.ingredientIds), recipe]),
 );
 
 const INGREDIENT_UPGRADE_RECIPES: IngredientUpgradeRecipe[] = INGREDIENT_UPGRADE_RECIPE_SPECS.map((spec) =>
@@ -668,19 +665,6 @@ const FALLBACK_INGREDIENT_POOL_MAP = new Map(
   FALLBACK_INGREDIENT_POOLS.map((pool) => [pool.rank, pool]),
 );
 
-function getRecipeIdFromSelection(selection: Selection) {
-  if (!selection.batter || !selection.cream || !selection.topping || !selection.finisher) {
-    return null;
-  }
-
-  return `${selection.batter}__${selection.cream}__${selection.topping}__${selection.finisher}`;
-}
-
-function getRecipeFromSelection(selection: Selection): Recipe | null {
-  const recipeId = getRecipeIdFromSelection(selection);
-  return recipeId ? RECIPE_MAP.get(recipeId) ?? null : null;
-}
-
 function getFreeformCupcakeRecipe(ingredientIds: string[]) {
   return FREEFORM_CUPCAKE_RECIPE_MAP.get(createMixingKey(ingredientIds)) ?? null;
 }
@@ -705,6 +689,7 @@ function getDailyRecipe(dateKey: string): Recipe {
 }
 
 export {
+  ACTIVE_RECIPE_IDS,
   ALL_INGREDIENTS,
   BATTERS,
   CATEGORY_META,
@@ -712,11 +697,11 @@ export {
   CREAMS,
   FALLBACK_INGREDIENT_POOLS,
   FINISHERS,
-  FREEFORM_CUPCAKE_RECIPES,
   INGREDIENT_GROUPS,
   INGREDIENT_MAP,
   INGREDIENT_RANK_META,
   INGREDIENT_UPGRADE_RECIPES,
+  LEGACY_RECIPES,
   RARITY_META,
   RECIPES,
   RECIPE_MAP,
@@ -726,6 +711,4 @@ export {
   getFallbackIngredientPool,
   getFreeformCupcakeRecipe,
   getIngredientUpgradeRecipe,
-  getRecipeFromSelection,
-  getRecipeIdFromSelection,
 };

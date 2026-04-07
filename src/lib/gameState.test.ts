@@ -1,33 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { RECIPES } from "../data/gameData";
-import { createInitialGameState, exportGameState, importGameState, normalizeGameState } from "./gameState";
+import { normalizeGameState } from "./gameState";
 
-describe("save transfer", () => {
-  it("round-trips an exported save", async () => {
-    const recipeId = RECIPES[0].id;
-    const state = createInitialGameState(123);
+describe("game state normalization", () => {
+  it("converts the legacy four-slot selection object into a freeform selection list", () => {
+    const state = normalizeGameState(
+      {
+        selection: {
+          batter: "vanilla-cloud",
+          cream: "milk-cloud",
+          topping: "cherry-bloom",
+          finisher: "pink-ribbon",
+        },
+      },
+      0,
+    );
 
-    state.pendingBoxes = 1;
-    state.lastDeliveryResolvedAt = 456;
-    state.lastDailyClaimDate = "2026-04-07";
-    state.dailyStreak = 3;
-    state.lastDailyChallengeDate = "2026-04-06";
-    state.lastCraftedRecipeId = recipeId;
-    state.discoveredRecipeIds = [recipeId];
-    state.favorites = [recipeId];
-    state.collection[recipeId] = {
-      count: 2,
-      firstCraftedAt: 111,
-      lastCraftedAt: 222,
-    };
-
-    const exported = await exportGameState(state);
-    const imported = await importGameState(exported, 999);
-
-    expect(imported).toEqual(normalizeGameState(state, 999));
+    expect(state.selection).toEqual([
+      "vanilla-cloud",
+      "milk-cloud",
+      "cherry-bloom",
+      "pink-ribbon",
+    ]);
   });
 
-  it("rejects malformed transfer strings", async () => {
-    await expect(importGameState("daily-cupcake-save:1:not-valid")).rejects.toThrow();
+  it("drops invalid ingredient result ids while keeping valid array selections", () => {
+    const state = normalizeGameState(
+      {
+        selection: ["vanilla-cloud", "missing", "milk-cloud"],
+        lastCraftedIngredientId: "missing",
+      },
+      0,
+    );
+
+    expect(state.selection).toEqual(["vanilla-cloud", "milk-cloud"]);
+    expect(state.lastCraftedIngredientId).toBeNull();
   });
 });

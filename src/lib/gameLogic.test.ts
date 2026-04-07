@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELIVERY_MS, MAX_PENDING_BOXES } from "../config/game";
-import { RECIPES, getDailyRecipe, getRecipeFromSelection } from "../data/gameData";
-import { getCraftedRecipePreview, synchronizePendingBoxes } from "./gameLogic";
+import { RECIPES, getDailyRecipe } from "../data/gameData";
+import {
+  getMixingSelectionPreview,
+  hasEnoughIngredientsForSelection,
+  resolveCraftSelection,
+  synchronizePendingBoxes,
+} from "./gameLogic";
 import { createInitialGameState, normalizeGameState } from "./gameState";
 
 describe("game bootstrap", () => {
@@ -29,53 +34,60 @@ describe("game bootstrap", () => {
   });
 });
 
-describe("recipes", () => {
-  it("resolves a recipe from the selected ingredients", () => {
-    const recipe = getRecipeFromSelection({
-      batter: "vanilla-cloud",
-      cream: "milk-cloud",
-      topping: "cherry-bloom",
-      finisher: "pink-ribbon",
-    });
-
-    expect(recipe?.id).toBe("vanilla-cloud__milk-cloud__cherry-bloom__pink-ribbon");
+describe("freeform crafting", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it("picks the same daily recipe for the same day", () => {
-    expect(getDailyRecipe("2026-04-07").id).toBe(getDailyRecipe("2026-04-07").id);
+  it("returns a cupcake preview for an exact freeform recipe", () => {
+    const preview = getMixingSelectionPreview(["vanilla-cloud", "milk-cloud"]);
+
+    expect(preview.status).toBe("cupcake");
+    expect(preview.recipe?.id).toBe("cloud-blanket-shortcake");
   });
 
-  it("returns a preview for an exact crafted combination", () => {
-    const selection = {
-      batter: "vanilla-cloud",
-      cream: "milk-cloud",
-      topping: "cherry-bloom",
-      finisher: "pink-ribbon",
-    } as const;
-    const preview = getCraftedRecipePreview(selection, {
-      "vanilla-cloud__milk-cloud__cherry-bloom__pink-ribbon": {
-        count: 3,
-        firstCraftedAt: 100,
-        lastCraftedAt: 200,
-      },
-    });
+  it("returns an upgrade preview for an ingredient upgrade recipe", () => {
+    const preview = getMixingSelectionPreview(["vanilla-cloud", "milk-cloud", "sparkle-sugar"]);
 
-    expect(preview?.recipe.id).toBe("vanilla-cloud__milk-cloud__cherry-bloom__pink-ribbon");
-    expect(preview?.record.count).toBe(3);
+    expect(preview.status).toBe("upgrade");
+    expect(preview.ingredient?.id).toBe("bunny-marshmallow");
   });
 
-  it("does not return a preview for an uncrafted combination", () => {
-    const preview = getCraftedRecipePreview(
+  it("resolves a fallback ingredient from the refined pool when refined ingredients are mixed", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const result = resolveCraftSelection(
       {
-        batter: "vanilla-cloud",
-        cream: "milk-cloud",
-        topping: "cherry-bloom",
-        finisher: "pink-ribbon",
+        "matcha-forest": 1,
+        "milk-cloud": 1,
       },
-      {},
+      ["matcha-forest", "milk-cloud"],
     );
 
-    expect(preview).toBeNull();
+    expect(result.type).toBe("ingredient");
+    if (result.type !== "ingredient") {
+      throw new Error("Expected ingredient result");
+    }
+    expect(result.source).toBe("fallback");
+    expect(result.rank).toBe("refined");
+    expect(result.ingredient.rank).toBe("refined");
+  });
+
+  it("counts repeated ingredients against inventory quantity", () => {
+    expect(
+      hasEnoughIngredientsForSelection(
+        {
+          "vanilla-cloud": 1,
+        },
+        ["vanilla-cloud", "vanilla-cloud"],
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("recipes", () => {
+  it("picks the same daily recipe for the same day", () => {
+    expect(getDailyRecipe("2026-04-07").id).toBe(getDailyRecipe("2026-04-07").id);
   });
 });
 

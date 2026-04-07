@@ -163,6 +163,7 @@ export function SaveTransferMenu() {
     dailyStreak,
     lastDailyChallengeDate,
     lastCraftedRecipeId,
+    lastCraftedIngredientId,
     replaceGameState,
   } = useGameStore(
     useShallow((state) => ({
@@ -177,6 +178,7 @@ export function SaveTransferMenu() {
       dailyStreak: state.dailyStreak,
       lastDailyChallengeDate: state.lastDailyChallengeDate,
       lastCraftedRecipeId: state.lastCraftedRecipeId,
+      lastCraftedIngredientId: state.lastCraftedIngredientId,
       replaceGameState: state.replaceGameState,
     })),
   );
@@ -268,6 +270,7 @@ export function SaveTransferMenu() {
       dailyStreak,
       lastDailyChallengeDate,
       lastCraftedRecipeId,
+      lastCraftedIngredientId,
     };
   }
 

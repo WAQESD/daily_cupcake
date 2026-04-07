@@ -13,6 +13,7 @@ export type IngredientFamily =
 
 export type IngredientRank = "base" | "refined";
 export type Rarity = "common" | "rare" | "epic" | "legendary";
+export type RecipeKind = "mixing" | "legacy";
 
 export type PageId = "home" | "bakery" | "delivery" | "collection" | "showcase";
 
@@ -66,19 +67,7 @@ export interface RecipePalette {
 export interface Recipe {
   id: string;
   index: number;
-  name: string;
-  description: string;
-  collection: IngredientFamily;
-  collectionLabel: string;
-  rarity: Rarity;
-  rarityLabel: string;
-  ingredientIds: Record<CategoryId, string>;
-  ingredients: Ingredient[];
-  palette: RecipePalette;
-}
-
-export interface MixingCupcakeRecipe {
-  id: string;
+  kind: RecipeKind;
   name: string;
   description: string;
   collection: IngredientFamily;
@@ -106,7 +95,7 @@ export interface FallbackIngredientPool {
 }
 
 export type Inventory = Record<string, number>;
-export type Selection = Record<CategoryId, string | null>;
+export type Selection = string[];
 
 export interface RecipeCollectionRecord {
   count: number;
@@ -126,6 +115,7 @@ export interface GameState {
   dailyStreak: number;
   lastDailyChallengeDate: string;
   lastCraftedRecipeId: string | null;
+  lastCraftedIngredientId: string | null;
 }
 
 export interface UiState {

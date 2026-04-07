@@ -71,9 +71,9 @@ export function ShowcasePage() {
         <div className="section-heading section-heading--stack">
           <div>
             <p className="eyebrow">최근 기록</p>
-            <h2>최근 만든 컵케이크</h2>
+            <h2>최근 만든 결과</h2>
           </div>
-          <span className="section-heading__note">방금 만든 결과를 다시 보고 진열장으로 옮길 수 있어요.</span>
+          <span className="section-heading__note">방금 만든 컵케이크 기록을 다시 보고 진열장으로 옮길 수 있어요.</span>
         </div>
 
         <div className="crafted-list">

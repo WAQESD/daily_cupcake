@@ -1,7 +1,7 @@
 import { startTransition, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { SaveTransferMenu } from "./components/SaveTransferMenu";
-import { RECIPES } from "./data/gameData";
+import { ACTIVE_RECIPE_IDS, RECIPES } from "./data/gameData";
 import { getDiscoveryProgressPercent } from "./lib/gameLogic";
 import { useNow } from "./lib/useNow";
 import { BakeryPage } from "./pages/BakeryPage";
@@ -54,7 +54,7 @@ export default function App() {
     syncDeliveryBoxes(now);
   }, [now, syncDeliveryBoxes]);
 
-  const discoveredCount = discoveredRecipeIds.length;
+  const discoveredCount = discoveredRecipeIds.filter((recipeId) => ACTIVE_RECIPE_IDS.has(recipeId)).length;
   const discoveryPercent = getDiscoveryProgressPercent(discoveredCount, RECIPES.length);
 
   function handlePageChange(page: PageId) {
@@ -123,7 +123,11 @@ export default function App() {
 
               <label className="page-select">
                 <span>드롭다운 메뉴</span>
-                <select value={activePage} aria-label="페이지 선택" onChange={(event) => handlePageChange(event.target.value as PageId)}>
+                <select
+                  value={activePage}
+                  aria-label="페이지 선택"
+                  onChange={(event) => handlePageChange(event.target.value as PageId)}
+                >
                   {PAGE_ORDER.map((pageId) => (
                     <option key={pageId} value={pageId}>
                       {PAGE_META[pageId].label}
@@ -145,7 +149,10 @@ export default function App() {
           <BakeryPage />
         </section>
 
-        <section className={`page-section ${activePage === "delivery" ? "is-active" : ""}`} hidden={activePage !== "delivery"}>
+        <section
+          className={`page-section ${activePage === "delivery" ? "is-active" : ""}`}
+          hidden={activePage !== "delivery"}
+        >
           <DeliveryPage now={now} />
         </section>
 
@@ -156,7 +163,10 @@ export default function App() {
           <CollectionPage />
         </section>
 
-        <section className={`page-section ${activePage === "showcase" ? "is-active" : ""}`} hidden={activePage !== "showcase"}>
+        <section
+          className={`page-section ${activePage === "showcase" ? "is-active" : ""}`}
+          hidden={activePage !== "showcase"}
+        >
           <ShowcasePage />
         </section>
       </main>

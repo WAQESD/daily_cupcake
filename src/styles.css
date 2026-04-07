@@ -777,11 +777,6 @@ p {
   gap: 14px;
 }
 
-.mix-preview__result {
-  display: grid;
-  gap: 14px;
-}
-
 .selection-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -998,13 +993,6 @@ p {
   align-items: center;
   padding: 18px;
   min-height: 190px;
-}
-
-.result-card--known-selection {
-  border: 2px solid rgba(255, 124, 173, 0.45);
-  background:
-    linear-gradient(180deg, rgba(255, 251, 216, 0.95), rgba(255, 239, 247, 0.92)),
-    var(--panel-soft);
 }
 
 .result-card--empty {

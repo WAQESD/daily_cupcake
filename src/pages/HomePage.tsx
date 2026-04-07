@@ -1,7 +1,7 @@
 import heroBakery from "../../assets/images/hero-bakery.png";
 import { useShallow } from "zustand/react/shallow";
 import { MAX_PENDING_BOXES, SHOWCASE_LIMIT } from "../config/game";
-import { RECIPES } from "../data/gameData";
+import { ACTIVE_RECIPE_IDS, RECIPES } from "../data/gameData";
 import {
   getDiscoveryProgressPercent,
   getNextDeliveryCountdown,
@@ -52,7 +52,7 @@ export function HomePage({ now, onNavigate }: HomePageProps) {
     })),
   );
 
-  const discoveredCount = discoveredRecipeIds.length;
+  const discoveredCount = discoveredRecipeIds.filter((recipeId) => ACTIVE_RECIPE_IDS.has(recipeId)).length;
   const progressPercent = getDiscoveryProgressPercent(discoveredCount, RECIPES.length);
   const craftedEntries = Object.keys(collection).length;
   const totalCrafted = getTotalCraftedCount(collection);

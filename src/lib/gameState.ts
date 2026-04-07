@@ -1,5 +1,5 @@
 import { MAX_PENDING_BOXES, SHOWCASE_LIMIT, STORAGE_KEY } from "../config/game";
-import { ALL_INGREDIENTS, RECIPES } from "../data/gameData";
+import { ALL_INGREDIENTS, RECIPE_MAP } from "../data/gameData";
 import type { GameState, RecipeCollectionRecord, Selection } from "../types/game";
 
 const STARTER_ITEMS: Array<[string, number]> = [
@@ -28,20 +28,9 @@ const REQUIRED_GAME_STATE_KEYS: Array<keyof GameState> = [
   "lastDailyChallengeDate",
   "lastCraftedRecipeId",
 ];
+const VALID_SELECTION_VALUES = new Set(ALL_INGREDIENTS.map((ingredient) => ingredient.id));
 
-const VALID_SELECTION_VALUES = {
-  batter: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "batter").map((ingredient) => ingredient.id)),
-  cream: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "cream").map((ingredient) => ingredient.id)),
-  topping: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "topping").map((ingredient) => ingredient.id)),
-  finisher: new Set(ALL_INGREDIENTS.filter((ingredient) => ingredient.category === "finisher").map((ingredient) => ingredient.id)),
-} satisfies Record<keyof Selection, Set<string>>;
-
-export const DEFAULT_SELECTION: Selection = {
-  batter: null,
-  cream: null,
-  topping: null,
-  finisher: null,
-};
+export const DEFAULT_SELECTION: Selection = [];
 
 type SaveTransferPayload = {
   format: string;
@@ -121,6 +110,30 @@ function validateSaveTransferPayload(payload: unknown): asserts payload is SaveT
   }
 }
 
+function normalizeSelection(rawSelection: unknown): Selection {
+  if (Array.isArray(rawSelection)) {
+    return rawSelection
+      .filter((ingredientId): ingredientId is string => typeof ingredientId === "string")
+      .filter((ingredientId) => VALID_SELECTION_VALUES.has(ingredientId))
+      .slice(0, 5);
+  }
+
+  if (!isRecord(rawSelection)) {
+    return [];
+  }
+
+  const legacySelection = [
+    rawSelection.batter,
+    rawSelection.cream,
+    rawSelection.topping,
+    rawSelection.finisher,
+  ];
+
+  return legacySelection
+    .filter((ingredientId): ingredientId is string => typeof ingredientId === "string")
+    .filter((ingredientId) => VALID_SELECTION_VALUES.has(ingredientId));
+}
+
 export function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
 }
@@ -128,7 +141,7 @@ export function clamp(value: number, minimum: number, maximum: number) {
 function createBaseGameState(now = Date.now()): GameState {
   return {
     inventory: {},
-    selection: { ...DEFAULT_SELECTION },
+    selection: [...DEFAULT_SELECTION],
     discoveredRecipeIds: [],
     collection: {},
     favorites: [],
@@ -138,6 +151,7 @@ function createBaseGameState(now = Date.now()): GameState {
     dailyStreak: 0,
     lastDailyChallengeDate: "",
     lastCraftedRecipeId: null,
+    lastCraftedIngredientId: null,
   };
 }
 
@@ -149,7 +163,7 @@ export function cloneGameState(state: GameState): GameState {
   return {
     ...state,
     inventory: { ...state.inventory },
-    selection: { ...state.selection },
+    selection: [...state.selection],
     discoveredRecipeIds: [...state.discoveredRecipeIds],
     collection,
     favorites: [...state.favorites],
@@ -181,27 +195,9 @@ export function normalizeGameState(rawState: unknown, now = Date.now()): GameSta
     ]),
   );
 
-  const rawSelection = isRecord(rawState.selection) ? rawState.selection : {};
-  normalized.selection = {
-    batter:
-      typeof rawSelection.batter === "string" && VALID_SELECTION_VALUES.batter.has(rawSelection.batter)
-        ? rawSelection.batter
-        : null,
-    cream:
-      typeof rawSelection.cream === "string" && VALID_SELECTION_VALUES.cream.has(rawSelection.cream)
-        ? rawSelection.cream
-        : null,
-    topping:
-      typeof rawSelection.topping === "string" && VALID_SELECTION_VALUES.topping.has(rawSelection.topping)
-        ? rawSelection.topping
-        : null,
-    finisher:
-      typeof rawSelection.finisher === "string" && VALID_SELECTION_VALUES.finisher.has(rawSelection.finisher)
-        ? rawSelection.finisher
-        : null,
-  };
+  normalized.selection = normalizeSelection(rawState.selection);
 
-  const validRecipeIds = new Set(RECIPES.map((recipe) => recipe.id));
+  const validRecipeIds = new Set(RECIPE_MAP.keys());
   normalized.discoveredRecipeIds = Array.isArray(rawState.discoveredRecipeIds)
     ? rawState.discoveredRecipeIds.filter(
         (recipeId): recipeId is string => typeof recipeId === "string" && validRecipeIds.has(recipeId),
@@ -243,6 +239,10 @@ export function normalizeGameState(rawState: unknown, now = Date.now()): GameSta
   normalized.lastCraftedRecipeId =
     typeof rawState.lastCraftedRecipeId === "string" && validRecipeIds.has(rawState.lastCraftedRecipeId)
       ? rawState.lastCraftedRecipeId
+      : null;
+  normalized.lastCraftedIngredientId =
+    typeof rawState.lastCraftedIngredientId === "string" && VALID_SELECTION_VALUES.has(rawState.lastCraftedIngredientId)
+      ? rawState.lastCraftedIngredientId
       : null;
 
   return normalized;

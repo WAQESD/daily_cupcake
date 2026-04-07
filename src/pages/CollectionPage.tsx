@@ -2,7 +2,7 @@ import { useDeferredValue, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
-import { COLLECTION_META, RARITY_META, RECIPE_MAP, RECIPES } from "../data/gameData";
+import { ACTIVE_RECIPE_IDS, COLLECTION_META, RARITY_META, RECIPE_MAP, RECIPES } from "../data/gameData";
 import { getDiscoveryProgressPercent } from "../lib/gameLogic";
 import { useGameStore } from "../store/gameStore";
 
@@ -19,9 +19,10 @@ export function CollectionPage() {
   const [searchText, setSearchText] = useState("");
 
   const deferredSearchText = useDeferredValue(searchText.trim().toLowerCase());
-  const discoveredCount = discoveredRecipeIds.length;
+  const discoveredActiveRecipeIds = discoveredRecipeIds.filter((recipeId) => ACTIVE_RECIPE_IDS.has(recipeId));
+  const discoveredCount = discoveredActiveRecipeIds.length;
   const progressPercent = getDiscoveryProgressPercent(discoveredCount, RECIPES.length);
-  const discoveredSet = new Set(discoveredRecipeIds);
+  const discoveredSet = new Set(discoveredActiveRecipeIds);
 
   const filteredRecipes = discoveredRecipeIds
     .map((recipeId) => RECIPE_MAP.get(recipeId))
@@ -144,6 +145,7 @@ export function CollectionPage() {
                   <div className="recipe-card__footer">
                     <Tag label={recipe.collectionLabel} />
                     <Tag label={recipe.rarityLabel} bright />
+                    {recipe.kind === "legacy" ? <Tag label="레거시 기록" /> : null}
                   </div>
                 </div>
               </article>

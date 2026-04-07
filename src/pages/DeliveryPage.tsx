@@ -1,5 +1,5 @@
-import { CupcakeArt } from "../components/CupcakeArt";
 import { useShallow } from "zustand/react/shallow";
+import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { MAX_PENDING_BOXES } from "../config/game";
 import { getDailyRecipe } from "../data/gameData";
