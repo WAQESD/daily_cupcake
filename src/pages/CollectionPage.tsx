@@ -1,3 +1,4 @@
+import collectionBanner from "../../assets/images/collection-banner.png";
 import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
@@ -57,6 +58,10 @@ export function CollectionPage() {
           </div>
           <span className="section-heading__note">전체 진행률은 한눈에, 상세 검색은 오른쪽 목록에서 확인해요.</span>
         </div>
+
+        <figure className="page-banner page-banner--collection">
+          <img src={collectionBanner} alt="Pastel cupcake scrapbook desk with recipe cards and display stands" />
+        </figure>
 
         <div className="progress-block">
           <div className="progress-copy">
