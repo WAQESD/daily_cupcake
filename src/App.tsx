@@ -4,6 +4,7 @@ import { SaveTransferMenu } from "./components/SaveTransferMenu";
 import { RECIPES } from "./data/gameData";
 import { getDiscoveryProgressPercent } from "./lib/gameLogic";
 import { useNow } from "./lib/useNow";
+import "./card-polish.css";
 import "./mobile-overrides.css";
 import { BakeryPage } from "./pages/BakeryPage";
 import { CollectionPage } from "./pages/CollectionPage";

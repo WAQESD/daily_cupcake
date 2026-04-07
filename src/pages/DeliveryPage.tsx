@@ -50,7 +50,12 @@ export function DeliveryPage({ now }: DeliveryPageProps) {
       </div>
 
       <figure className="page-banner page-banner--delivery">
-        <img src={deliveryBanner} alt="Pastel cupcake delivery corner illustration" />
+        <img src={deliveryBanner} alt="선물 상자와 컵케이크가 놓인 파스텔 톤 베이커리 배달 일러스트" />
+        <figcaption className="page-banner__copy">
+          <span className="page-banner__eyebrow">오늘의 배달</span>
+          <strong>상자를 모으고 추천 레시피 보너스를 챙겨요</strong>
+          <p>열린 상자 수와 오늘의 추천 레시피를 한 화면에서 보고 바로 보상을 받을 수 있어요.</p>
+        </figcaption>
       </figure>
 
       <div className="delivery-stack">

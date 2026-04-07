@@ -31,6 +31,8 @@ export function CupcakeArt({ recipe, size = "medium" }: CupcakeArtProps) {
 
   return (
     <div className={`cupcake-art cupcake-art--${size}`} style={style}>
+      <div className="cupcake-art__halo" />
+      <div className="cupcake-art__shadow" />
       <div className="cupcake-art__sparkle" />
       <div className="cupcake-art__finish">{finishIngredient?.short ?? ""}</div>
       <div className="cupcake-art__cream">
@@ -38,8 +40,10 @@ export function CupcakeArt({ recipe, size = "medium" }: CupcakeArtProps) {
         <span />
         <span />
       </div>
+      <div className="cupcake-art__drizzle" />
       <div className="cupcake-art__topping">{toppingIngredient?.short ?? ""}</div>
       <div className="cupcake-art__cake" />
+      <div className="cupcake-art__plate" />
       <div className="cupcake-art__wrapper" />
     </div>
   );
