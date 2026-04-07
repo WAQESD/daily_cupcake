@@ -77,11 +77,22 @@ export function HomePage({ now, onNavigate }: HomePageProps) {
             <span className="chip">선물함 바로가기</span>
             <span className="chip">도감 집중 탐색</span>
           </div>
+          <div className="hero__actions">
+            <button type="button" className="mini-button" onClick={() => onNavigate("delivery")}>
+              선물함 열기
+            </button>
+            <buttn type="button" className="mini-button" onClick={() => onNavigate("bakery")}>
+              굽기 시작
+            </button>
+            <button type="button" className="mini-button" onClick={() => onNavigate("collection")}>
+              도감 보기
+            </button>
+          </div>
         </div>
 
         <div className="hero__visual">
           <figure className="hero-visual-card">
-            <img src={heroBakery} alt="컵케이크와 재료가 놓인 베이커리 일러스트" />
+            <img src={heroBakery} alt="컵케이크와 재료료가 놓인 베이커리 일믴뭤트" />
           </figure>
         </div>
 
@@ -100,7 +111,7 @@ export function HomePage({ now, onNavigate }: HomePageProps) {
             onClick={claimDailyGift}
             disabled={!canClaimDailyGift}
           >
-            오늘의 선물 받기
+            오늘 의 선물 받기
           </button>
         </div>
       </header>

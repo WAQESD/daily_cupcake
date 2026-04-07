@@ -4,6 +4,7 @@ import { SaveTransferMenu } from "./components/SaveTransferMenu";
 import { RECIPES } from "./data/gameData";
 import { getDiscoveryProgressPercent } from "./lib/gameLogic";
 import { useNow } from "./lib/useNow";
+import "./mobile-overrides.css";
 import { BakeryPage } from "./pages/BakeryPage";
 import { CollectionPage } from "./pages/CollectionPage";
 import { DeliveryPage } from "./pages/DeliveryPage";
@@ -107,7 +108,7 @@ export default function App() {
             </div>
 
             <div className="app-header__controls">
-              <nav className="page-nav" aria-label="주요 메뉴">
+              <nav className="page-nav page-nav--desktop" aria-label="주요 메뉴">
                 {PAGE_ORDER.map((pageId) => (
                   <button
                     key={pageId}
@@ -121,7 +122,7 @@ export default function App() {
                 ))}
               </nav>
 
-              <label className="page-select">
+              <label className="page-select page-select--desktop">
                 <span>드롭다운 메뉴</span>
                 <select value={activePage} aria-label="페이지 선택" onChange={(event) => handlePageChange(event.target.value as PageId)}>
                   {PAGE_ORDER.map((pageId) => (
@@ -160,6 +161,21 @@ export default function App() {
           <ShowcasePage />
         </section>
       </main>
+
+      <nav className="page-dock" aria-label="모바일 주요 메뉴">
+        {PAGE_ORDER.map((pageId) => (
+          <button
+            key={pageId}
+            type="button"
+            className={`page-dock__button ${activePage === pageId ? "page-dock__button--active" : ""}`}
+            onClick={() => handlePageChange(pageId)}
+            aria-current={activePage === pageId ? "page" : undefined}
+          >
+            <span className="page-dock__label">{PAGE_META[pageId].label}</span>
+            {pageId === "delivery" && pendingBoxes > 0 ? <span className="page-dock__badge">{pendingBoxes}</span> : null}
+          </button>
+        ))}
+      </nav>
     </>
   );
 }
