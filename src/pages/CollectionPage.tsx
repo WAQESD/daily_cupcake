@@ -1,3 +1,4 @@
+import collectionBanner from "../../assets/images/collection-banner-v1.png";
 import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
@@ -80,6 +81,10 @@ export function CollectionPage() {
       </section>
 
       <section className="panel collection-library">
+        <figure className="page-banner">
+          <img src={collectionBanner} alt="Pastel cupcake scrapbook scene" />
+        </figure>
+
         <div className="section-heading section-heading--stack">
           <div>
             <p className="eyebrow">레시피 탐색</p>

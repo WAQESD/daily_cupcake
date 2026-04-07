@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import ovenStage from "../../assets/images/oven-stage.png";
+import ovenStage from "../../assets/images/oven-stage-v2.png";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
 import { CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP, RECIPES, getRecipeFromSelection } from "../data/gameData";
