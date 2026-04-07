@@ -1,3 +1,4 @@
+import collectionBanner from "../../assets/images/collection-banner-v1.png";
 import { useDeferredValue, useState } from "react";
 import { CupcakeArt } from "../components/CupcakeArt";
 import { Tag } from "../components/Tag";
@@ -48,8 +49,23 @@ export function CollectionPage() {
     });
 
   return (
-    <div className="page-grid page-grid--collection">
+    <>
       <section className="panel rail-panel">
+        <div className="section-heading section-heading--stack">
+          <div>
+            <p className="eyebrow">스크랩 무드</p>
+            <h2>컬렉션 화면 톤 정리</h2>
+          </div>
+          <span className="section-heading__note">새 배너를 추가해서 수집 페이지도 같은 베이커리 무드로 이어지게 했습니다.</span>
+        </div>
+
+        <figure className="page-banner page-banner--collection">
+          <img src={collectionBanner} alt="컵케이크 사진 카드와 스크랩북 메모가 놓인 파스텔 컬렉션 배너" />
+        </figure>
+      </section>
+
+      <div className="page-grid page-grid--collection">
+        <section className="panel rail-panel">
         <div className="section-heading section-heading--stack">
           <div>
             <p className="eyebrow">수집 기록</p>
@@ -148,6 +164,7 @@ export function CollectionPage() {
           )}
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
