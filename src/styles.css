@@ -3,7 +3,8 @@
   --bg-mid: #ffe8f1;
   --bg-bottom: #ffc8dc;
   --panel: rgba(255, 252, 247, 0.92);
-  --panel-soft: rgba(255, 250, 253, 0.84);
+  --panel-soft: rgba(255, 250, 253, 0.88);
+  --panel-strong: rgba(255, 255, 255, 0.78);
   --line: #ef9abd;
   --line-strong: #b65c83;
   --text: #4e2337;
@@ -11,9 +12,14 @@
   --accent: #ff7cad;
   --accent-deep: #ff5f95;
   --accent-gold: #ffd468;
+  --pearl: rgba(255, 255, 255, 0.86);
+  --card-shadow:
+    0 18px 34px rgba(188, 107, 139, 0.14),
+    0 8px 0 rgba(236, 168, 196, 0.26);
   --shadow:
-    0 22px 50px rgba(171, 79, 117, 0.12),
-    0 10px 0 rgba(237, 154, 189, 0.38);
+    0 28px 60px rgba(171, 79, 117, 0.12),
+    0 12px 24px rgba(255, 255, 255, 0.34),
+    0 10px 0 rgba(237, 154, 189, 0.32);
   --pixel-shadow: 0 5px 0 #eaa1c0;
 }
 
@@ -35,8 +41,9 @@ body {
   color: var(--text);
   font-family: "Gowun Dodum", "Malgun Gothic", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.95) 0 12%, transparent 13%),
-    radial-gradient(circle at 90% 12%, rgba(255, 255, 255, 0.55) 0 8%, transparent 9%),
+    radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.95) 0 11%, transparent 18%),
+    radial-gradient(circle at 88% 16%, rgba(255, 251, 253, 0.72) 0 10%, transparent 18%),
+    radial-gradient(circle at 50% 0%, rgba(255, 244, 248, 0.82) 0 18%, transparent 44%),
     linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 45%, var(--bg-bottom) 100%);
 }
 
@@ -58,8 +65,9 @@ body::before {
 
 body::after {
   background:
-    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.42), transparent 18%),
-    radial-gradient(circle at 80% 72%, rgba(255, 255, 255, 0.28), transparent 22%);
+    radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.36), transparent 18%),
+    radial-gradient(circle at 80% 72%, rgba(255, 255, 255, 0.26), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 28%);
 }
 
 button,
@@ -103,24 +111,29 @@ select:focus-visible,
   width: 260px;
   height: 260px;
   border-radius: 40px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.78), transparent 72%);
-  filter: blur(6px);
-  opacity: 0.9;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.88), transparent 38%),
+    radial-gradient(circle, rgba(255, 230, 240, 0.72), transparent 72%);
+  filter: blur(7px);
+  opacity: 0.82;
   pointer-events: none;
 }
 
 .sky-decor--left {
   top: 22px;
   left: -56px;
+  animation: sky-drift 16s ease-in-out infinite;
 }
 
 .sky-decor--right {
   top: 240px;
   right: -48px;
+  animation: sky-drift 19s ease-in-out infinite reverse;
 }
 
 .app-shell {
   position: relative;
+  isolation: isolate;
   z-index: 1;
   width: min(1460px, calc(100% - 40px));
   margin: 0 auto;
@@ -172,7 +185,9 @@ select:focus-visible,
   padding: 18px;
   border: 2px solid rgba(239, 154, 189, 0.64);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.82);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 245, 249, 0.84));
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(10px);
 }
 
 .home-highlight {
@@ -206,6 +221,7 @@ select:focus-visible,
 
 .app-header__brand {
   align-content: start;
+  padding-right: 10px;
 }
 
 .app-header__brand-name,
@@ -224,7 +240,9 @@ select:focus-visible,
   padding: 18px;
   border: 2px solid rgba(239, 154, 189, 0.56);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.76);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 244, 248, 0.78));
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(12px);
 }
 
 .app-header__context strong {
@@ -272,6 +290,7 @@ select:focus-visible,
   background: rgba(255, 255, 255, 0.92);
   color: var(--text-soft);
   font-weight: 800;
+  box-shadow: 0 5px 0 rgba(237, 175, 198, 0.36);
   transition:
     transform 160ms ease,
     filter 160ms ease,
@@ -281,6 +300,7 @@ select:focus-visible,
 .page-nav__button:hover {
   transform: translateY(1px);
   filter: saturate(1.05);
+  box-shadow: 0 4px 0 rgba(237, 175, 198, 0.3);
 }
 
 .page-nav__button--active {
@@ -304,6 +324,7 @@ select:focus-visible,
 
 .panel {
   position: relative;
+  isolation: isolate;
   margin-bottom: 20px;
   padding: 24px;
   border: 3px solid var(--line);
@@ -312,7 +333,19 @@ select:focus-visible,
     linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 247, 250, 0.92)),
     var(--panel);
   box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
   overflow: hidden;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.62), transparent 28%),
+    radial-gradient(circle at 86% 12%, rgba(255, 241, 247, 0.44), transparent 20%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 34%);
+  pointer-events: none;
 }
 
 .panel::after {
@@ -344,6 +377,8 @@ select:focus-visible,
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 247, 252, 0.88)),
     var(--panel-soft);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(8px);
 }
 
 .soft-panel {
@@ -355,6 +390,7 @@ select:focus-visible,
   grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.78fr) minmax(260px, 0.82fr);
   gap: 22px;
   align-items: stretch;
+  min-height: min(58vh, 500px);
 }
 
 .hero::before {
@@ -386,7 +422,8 @@ select:focus-visible,
 .hero__copy {
   display: grid;
   align-content: center;
-  gap: 14px;
+  gap: 16px;
+  padding: 8px 0;
 }
 
 .hero__visual {
@@ -396,6 +433,7 @@ select:focus-visible,
 
 .hero-visual-card {
   position: relative;
+  isolation: isolate;
   min-height: 240px;
   height: 100%;
   aspect-ratio: 4 / 5;
@@ -404,7 +442,21 @@ select:focus-visible,
   border-radius: 30px;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255, 230, 239, 0.98), rgba(255, 241, 217, 0.96));
-  box-shadow: inset 0 -18px 30px rgba(255, 182, 208, 0.22);
+  box-shadow:
+    0 22px 34px rgba(188, 112, 144, 0.2),
+    inset 0 -18px 30px rgba(255, 182, 208, 0.22);
+}
+
+.hero-visual-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 38%),
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.32), transparent 18%),
+    radial-gradient(circle at 84% 18%, rgba(255, 241, 247, 0.18), transparent 16%);
+  pointer-events: none;
 }
 
 .hero-visual-card::after {
@@ -417,11 +469,15 @@ select:focus-visible,
 }
 
 .hero-visual-card img {
+  position: relative;
+  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
+  transform: scale(1.01);
+  filter: saturate(0.97) brightness(1.02);
 }
 
 .hero__status {
@@ -518,7 +574,9 @@ p {
   padding: 18px;
   border: 2px solid rgba(239, 154, 189, 0.64);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 244, 248, 0.82));
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(8px);
 }
 
 .status-card__label,
@@ -729,6 +787,7 @@ p {
   background:
     radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.92), rgba(255, 245, 248, 0.82) 34%, transparent 35%),
     linear-gradient(180deg, rgba(255, 240, 245, 0.9), rgba(255, 227, 236, 0.82));
+  box-shadow: 0 20px 30px rgba(197, 124, 155, 0.16);
 }
 
 .oven-stage__visual::before {
@@ -741,6 +800,16 @@ p {
   z-index: 1;
 }
 
+.oven-stage__visual::after {
+  position: absolute;
+  inset: 14px;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: 22px;
+  z-index: 2;
+  pointer-events: none;
+}
+
 .oven-stage__image {
   position: absolute;
   inset: 0;
@@ -749,6 +818,8 @@ p {
   object-fit: cover;
   object-position: center;
   z-index: 0;
+  transform: scale(1.01);
+  filter: saturate(0.96) brightness(1.02);
 }
 
 .oven-stage__craft {
@@ -1067,10 +1138,26 @@ p {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.62);
 }
 
+.showcase-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.24), transparent 16%),
+    radial-gradient(circle at 82% 18%, rgba(255, 246, 249, 0.18), transparent 14%);
+  pointer-events: none;
+}
+
 .showcase-scene img {
+  position: relative;
+  z-index: 0;
   display: block;
   width: 100%;
   height: auto;
+  transform: scale(1.008);
+  filter: saturate(0.98) brightness(1.02);
 }
 
 .showcase-list {
@@ -1092,6 +1179,37 @@ p {
   gap: 10px;
   justify-items: center;
   text-align: center;
+}
+
+.home-highlight,
+.delivery-card,
+.daily-recipe-card,
+.result-card,
+.recipe-card,
+.crafted-card,
+.showcase-card,
+.inventory-total,
+.inventory-chip {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.home-highlight:hover,
+.delivery-card:hover,
+.daily-recipe-card:hover,
+.result-card:hover,
+.recipe-card:hover,
+.crafted-card:hover,
+.showcase-card:hover,
+.inventory-total:hover,
+.inventory-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(214, 113, 153, 0.58);
+  box-shadow:
+    0 22px 36px rgba(188, 107, 139, 0.18),
+    0 8px 0 rgba(236, 168, 196, 0.28);
 }
 
 .recipe-list,
@@ -1155,12 +1273,15 @@ input {
 
 .cupcake-art {
   position: relative;
+  isolation: isolate;
   display: grid;
   place-items: center;
   width: 156px;
   height: 156px;
   margin-inline: auto;
-  filter: drop-shadow(0 8px 0 rgba(236, 142, 180, 0.26));
+  filter:
+    drop-shadow(0 12px 16px rgba(214, 135, 170, 0.24))
+    drop-shadow(0 7px 0 rgba(236, 142, 180, 0.22));
 }
 
 .cupcake-art--small {
@@ -1168,21 +1289,47 @@ input {
   height: 104px;
 }
 
+.cupcake-art::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  z-index: 0;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.86), rgba(255, 243, 248, 0.48) 34%, transparent 68%),
+    radial-gradient(circle at 70% 26%, rgba(255, 255, 255, 0.46), transparent 16%);
+}
+
+.cupcake-art::after {
+  content: "";
+  position: absolute;
+  bottom: 10px;
+  z-index: 0;
+  width: 118px;
+  height: 22px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 244, 248, 0.92) 0 34%, rgba(233, 174, 198, 0.38) 48%, transparent 76%);
+}
+
 .cupcake-art__sparkle {
   position: absolute;
   inset: 8px;
+  z-index: 1;
   border-radius: 22px;
   background:
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.92), transparent 12%),
     radial-gradient(circle at 80% 25%, rgba(255, 255, 255, 0.88), transparent 10%),
     radial-gradient(circle at 65% 75%, rgba(255, 255, 255, 0.8), transparent 10%),
     radial-gradient(circle at 35% 60%, var(--collection-color), transparent 18%);
-  opacity: 0.7;
+  opacity: 0.8;
+  animation: sparkle-pulse 5.8s ease-in-out infinite;
 }
 
 .cupcake-art__finish {
   position: absolute;
-  top: 9px;
+  top: 11px;
+  left: 50%;
+  z-index: 4;
   padding: 4px 10px;
   border: 2px solid rgba(255, 255, 255, 0.76);
   border-radius: 999px;
@@ -1190,22 +1337,39 @@ input {
   color: #824761;
   font-size: 0.76rem;
   font-weight: 900;
+  transform: translateX(-50%) rotate(-4deg);
+  box-shadow: 0 6px 10px rgba(207, 130, 162, 0.18);
 }
 
 .cupcake-art__cream {
   position: absolute;
   top: 44px;
+  z-index: 2;
   display: flex;
   align-items: flex-end;
   gap: 7px;
 }
 
 .cupcake-art__cream span {
+  position: relative;
   display: block;
   width: 34px;
   border: 3px solid rgba(255, 255, 255, 0.76);
   background: linear-gradient(180deg, var(--cream-accent), var(--cream-color));
-  box-shadow: inset 0 -8px 0 rgba(255, 255, 255, 0.24);
+  box-shadow:
+    inset 0 -8px 0 rgba(255, 255, 255, 0.24),
+    0 6px 10px rgba(214, 148, 180, 0.14);
+}
+
+.cupcake-art__cream span::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 7px;
+  right: 7px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .cupcake-art__cream span:nth-child(1),
@@ -1223,6 +1387,7 @@ input {
 .cupcake-art__topping {
   position: absolute;
   top: 58px;
+  z-index: 4;
   padding: 4px 10px;
   border-radius: 999px;
   background: linear-gradient(180deg, var(--topper-accent), var(--topping-color));
@@ -1230,21 +1395,34 @@ input {
   color: #77435d;
   font-size: 0.76rem;
   font-weight: 900;
+  box-shadow: 0 8px 12px rgba(214, 148, 180, 0.16);
 }
 
 .cupcake-art__cake {
   position: absolute;
   bottom: 42px;
+  z-index: 2;
   width: 104px;
   height: 48px;
   border: 3px solid rgba(255, 255, 255, 0.8);
   border-radius: 18px 18px 12px 12px;
   background: linear-gradient(180deg, var(--cake-color), var(--wrapper-color));
+  box-shadow: inset 0 -10px 0 rgba(255, 255, 255, 0.16);
+}
+
+.cupcake-art__cake::before {
+  content: "";
+  position: absolute;
+  inset: 8px 10px auto;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .cupcake-art__wrapper {
   position: absolute;
   bottom: 16px;
+  z-index: 3;
   width: 126px;
   height: 44px;
   clip-path: polygon(12% 0, 88% 0, 100% 100%, 0 100%);
@@ -1255,7 +1433,17 @@ input {
       var(--wrapper-color) 0 12px,
       #fff7fb 12px 20px
     );
-  box-shadow: inset 0 -10px 0 rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 -10px 0 rgba(255, 255, 255, 0.2),
+    0 10px 18px rgba(214, 148, 180, 0.12);
+}
+
+.cupcake-art__wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 6px 10px 10px;
+  clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 70%);
 }
 
 .cupcake-art--small .cupcake-art__finish {
@@ -1293,6 +1481,61 @@ input {
   bottom: 12px;
   width: 88px;
   height: 30px;
+}
+
+.cupcake-art--small::before {
+  inset: 10px;
+  border-radius: 22px;
+}
+
+.cupcake-art--small::after {
+  bottom: 8px;
+  width: 84px;
+  height: 16px;
+}
+
+@keyframes sky-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(10px, 12px, 0) scale(1.04);
+  }
+}
+
+@keyframes sparkle-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-decor--left,
+  .sky-decor--right,
+  .cupcake-art__sparkle {
+    animation: none;
+  }
+
+  .home-highlight,
+  .delivery-card,
+  .daily-recipe-card,
+  .result-card,
+  .recipe-card,
+  .crafted-card,
+  .showcase-card,
+  .inventory-total,
+  .inventory-chip {
+    transition: none;
+  }
 }
 
 @media (max-width: 980px) {
