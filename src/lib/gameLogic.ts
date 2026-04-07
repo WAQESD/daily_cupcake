@@ -1,7 +1,55 @@
 import { DAILY_TIMEZONE, DELIVERY_MS, MAX_PENDING_BOXES } from "../config/game";
-import { ALL_INGREDIENTS, CATEGORY_META, INGREDIENT_GROUPS, INGREDIENT_MAP, getRecipeFromSelection } from "../data/gameData";
-import type { CategoryId, GameState, Inventory, Selection } from "../types/game";
+import {
+  ALL_INGREDIENTS,
+  CATEGORY_META,
+  INGREDIENT_GROUPS,
+  INGREDIENT_MAP,
+  INGREDIENT_RANK_META,
+  getFallbackIngredientPool,
+  getFreeformCupcakeRecipe,
+  getHighestIngredientRank,
+  getIngredientUpgradeRecipe,
+  getRecipeFromSelection,
+} from "../data/gameData";
+import type {
+  CategoryId,
+  CraftResult,
+  GameState,
+  Ingredient,
+  IngredientRank,
+  IngredientUpgradeRecipe,
+  Inventory,
+  Recipe,
+  RecipeCollectionRecord,
+  Selection,
+} from "../types/game";
 import { cloneGameState } from "./gameState";
+
+export type CraftPreview =
+  | {
+      kind: "empty";
+      message: string;
+    }
+  | {
+      kind: "invalid";
+      message: string;
+    }
+  | {
+      kind: "cupcake";
+      recipe: Recipe;
+      record: RecipeCollectionRecord | null;
+    }
+  | {
+      kind: "upgrade";
+      ingredient: Ingredient;
+      recipe: IngredientUpgradeRecipe;
+    }
+  | {
+      kind: "fallback";
+      rank: IngredientRank;
+      poolSize: number;
+      note: string;
+    };
 
 export function addIngredient(inventory: Inventory, ingredientId: string, amount = 1) {
   inventory[ingredientId] = (inventory[ingredientId] ?? 0) + amount;
@@ -85,11 +133,16 @@ export function applyIngredientReward(inventory: Inventory, ingredientIds: strin
   ingredientIds.forEach((ingredientId) => addIngredient(inventory, ingredientId, 1));
 }
 
+export function getSelectionIngredientCounts(selection: Selection) {
+  return selection.reduce<Record<string, number>>((accumulator, ingredientId) => {
+    accumulator[ingredientId] = (accumulator[ingredientId] ?? 0) + 1;
+    return accumulator;
+  }, {});
+}
+
 export function hasEnoughIngredientsForSelection(inventory: Inventory, selection: Selection) {
-  return CATEGORY_META.every(({ id }) => {
-    const ingredientId = selection[id];
-    return ingredientId !== null && (inventory[ingredientId] ?? 0) > 0;
-  });
+  const required = getSelectionIngredientCounts(selection);
+  return Object.entries(required).every(([ingredientId, amount]) => (inventory[ingredientId] ?? 0) >= amount);
 }
 
 export function getCraftedRecipePreview(selection: Selection, collection: GameState["collection"]) {
@@ -104,6 +157,114 @@ export function getCraftedRecipePreview(selection: Selection, collection: GameSt
   }
 
   return { recipe, record };
+}
+
+export function getCraftPreview(selection: Selection, collection: GameState["collection"]): CraftPreview {
+  if (selection.length === 0) {
+    return {
+      kind: "empty",
+      message: "재료를 2개 이상 고르면 자유 조합 결과를 미리 볼 수 있어요.",
+    };
+  }
+
+  if (selection.length < 2) {
+    return {
+      kind: "invalid",
+      message: "자유 조합은 재료를 최소 2개부터 넣을 수 있어요.",
+    };
+  }
+
+  if (selection.length > 5) {
+    return {
+      kind: "invalid",
+      message: "자유 조합은 한 번에 최대 5개까지만 넣을 수 있어요.",
+    };
+  }
+
+  const recipe = getFreeformCupcakeRecipe(selection);
+  if (recipe) {
+    return {
+      kind: "cupcake",
+      recipe,
+      record: collection[recipe.id] ?? null,
+    };
+  }
+
+  const upgradeRecipe = getIngredientUpgradeRecipe(selection);
+  if (upgradeRecipe) {
+    return {
+      kind: "upgrade",
+      ingredient: INGREDIENT_MAP.get(upgradeRecipe.resultIngredientId)!,
+      recipe: upgradeRecipe,
+    };
+  }
+
+  const rank = getHighestIngredientRank(selection);
+  const pool = getFallbackIngredientPool(rank);
+  if (!pool) {
+    return {
+      kind: "invalid",
+      message: "현재 선택으로는 결과 후보를 찾을 수 없어요.",
+    };
+  }
+
+  return {
+    kind: "fallback",
+    rank,
+    poolSize: pool.ingredientIds.length,
+    note: pool.note,
+  };
+}
+
+export function resolveCraftResult(selection: Selection): CraftResult | null {
+  if (selection.length < 2 || selection.length > 5) {
+    return null;
+  }
+
+  const recipe = getFreeformCupcakeRecipe(selection);
+  if (recipe) {
+    return {
+      type: "cupcake",
+      recipe,
+    };
+  }
+
+  const upgradeRecipe = getIngredientUpgradeRecipe(selection);
+  if (upgradeRecipe) {
+    const ingredient = INGREDIENT_MAP.get(upgradeRecipe.resultIngredientId);
+    if (!ingredient) {
+      return null;
+    }
+
+    return {
+      type: "ingredient",
+      ingredientId: ingredient.id,
+      ingredient,
+      rank: ingredient.rank,
+      source: "upgrade",
+      recipe: upgradeRecipe,
+    };
+  }
+
+  const rank = getHighestIngredientRank(selection);
+  const fallbackPool = getFallbackIngredientPool(rank);
+  if (!fallbackPool) {
+    return null;
+  }
+
+  const candidates = fallbackPool.ingredientIds
+    .map((ingredientId) => INGREDIENT_MAP.get(ingredientId))
+    .filter((ingredient): ingredient is Ingredient => Boolean(ingredient));
+  const ingredient = weightedPick(candidates);
+
+  return {
+    type: "ingredient",
+    ingredientId: ingredient.id,
+    ingredient,
+    rank,
+    source: "fallback",
+    recipe: null,
+  };
 }
 
 export function synchronizePendingBoxes(snapshot: GameState, now = Date.now()) {
@@ -136,7 +297,15 @@ export function getTotalInventoryCount(inventory: Inventory) {
 }
 
 export function getSelectedCount(selection: Selection) {
-  return CATEGORY_META.filter(({ id }) => Boolean(selection[id])).length;
+  return selection.length;
+}
+
+export function getSelectedCategoryCount(selection: Selection) {
+  return new Set(
+    selection
+      .map((ingredientId) => INGREDIENT_MAP.get(ingredientId)?.category)
+      .filter((category): category is CategoryId => Boolean(category)),
+  ).size;
 }
 
 export function getCategoryTotal(inventory: Inventory, categoryId: CategoryId) {
@@ -165,4 +334,8 @@ export function getDiscoveryProgressPercent(discoveredCount: number, totalCount:
   }
 
   return Math.round((discoveredCount / totalCount) * 100);
+}
+
+export function getRankLabel(rank: IngredientRank) {
+  return INGREDIENT_RANK_META[rank].label;
 }

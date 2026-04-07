@@ -65,20 +65,6 @@ export interface RecipePalette {
 
 export interface Recipe {
   id: string;
-  index: number;
-  name: string;
-  description: string;
-  collection: IngredientFamily;
-  collectionLabel: string;
-  rarity: Rarity;
-  rarityLabel: string;
-  ingredientIds: Record<CategoryId, string>;
-  ingredients: Ingredient[];
-  palette: RecipePalette;
-}
-
-export interface MixingCupcakeRecipe {
-  id: string;
   name: string;
   description: string;
   collection: IngredientFamily;
@@ -105,14 +91,42 @@ export interface FallbackIngredientPool {
   note: string;
 }
 
+export interface CupcakeCraftResult {
+  type: "cupcake";
+  recipe: Recipe;
+}
+
+export interface IngredientCraftResult {
+  type: "ingredient";
+  ingredientId: string;
+  ingredient: Ingredient;
+  rank: IngredientRank;
+  source: "upgrade" | "fallback";
+  recipe: IngredientUpgradeRecipe | null;
+}
+
+export type CraftResult = CupcakeCraftResult | IngredientCraftResult;
+
 export type Inventory = Record<string, number>;
-export type Selection = Record<CategoryId, string | null>;
+export type Selection = string[];
 
 export interface RecipeCollectionRecord {
   count: number;
   firstCraftedAt: number;
   lastCraftedAt: number;
 }
+
+export type LastMixResult =
+  | {
+      type: "cupcake";
+      recipeId: string;
+    }
+  | {
+      type: "ingredient";
+      ingredientId: string;
+      rank: IngredientRank;
+      source: "upgrade" | "fallback";
+    };
 
 export interface GameState {
   inventory: Inventory;
@@ -126,6 +140,7 @@ export interface GameState {
   dailyStreak: number;
   lastDailyChallengeDate: string;
   lastCraftedRecipeId: string | null;
+  lastMixResult: LastMixResult | null;
 }
 
 export interface UiState {

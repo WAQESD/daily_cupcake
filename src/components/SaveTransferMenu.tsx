@@ -163,6 +163,7 @@ export function SaveTransferMenu() {
     dailyStreak,
     lastDailyChallengeDate,
     lastCraftedRecipeId,
+    lastMixResult,
     replaceGameState,
   } = useGameStore(
     useShallow((state) => ({
@@ -177,6 +178,7 @@ export function SaveTransferMenu() {
       dailyStreak: state.dailyStreak,
       lastDailyChallengeDate: state.lastDailyChallengeDate,
       lastCraftedRecipeId: state.lastCraftedRecipeId,
+      lastMixResult: state.lastMixResult,
       replaceGameState: state.replaceGameState,
     })),
   );
@@ -268,6 +270,7 @@ export function SaveTransferMenu() {
       dailyStreak,
       lastDailyChallengeDate,
       lastCraftedRecipeId,
+      lastMixResult,
     };
   }
 
@@ -417,7 +420,8 @@ export function SaveTransferMenu() {
             </div>
             <div style={modalBodyStyle}>
               <p style={menuTextStyle}>
-                아래 문자열을 복사해 두면 다른 브라우저나 기기에서도 현재 진행 상태를 그대로 이어서 플레이할 수 있어요.
+                아래 문자열을 복사해 두면 다른 브라우저나 기기에서도 현재 진행 상태를 그대로 이어서 플레이할 수
+                있어요.
               </p>
               <textarea
                 ref={exportTextareaRef}

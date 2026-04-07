@@ -1,32 +1,31 @@
 import { describe, expect, it } from "vitest";
 import {
   FALLBACK_INGREDIENT_POOLS,
-  FREEFORM_CUPCAKE_RECIPES,
   INGREDIENT_MAP,
   INGREDIENT_UPGRADE_RECIPES,
+  RECIPES,
   getFallbackIngredientPool,
   getFreeformCupcakeRecipe,
+  getHighestIngredientRank,
   getIngredientUpgradeRecipe,
 } from "./gameData";
 
 describe("freeform mixing data", () => {
   it("defines cupcake recipes with 2 to 5 ingredients", () => {
-    expect(FREEFORM_CUPCAKE_RECIPES.length).toBeGreaterThan(0);
+    expect(RECIPES.length).toBeGreaterThan(0);
+    expect(RECIPES.every((recipe) => recipe.ingredientIds.length >= 2 && recipe.ingredientIds.length <= 5)).toBe(
+      true,
+    );
+    expect(RECIPES.some((recipe) => recipe.ingredientIds.length === 2)).toBe(true);
     expect(
-      FREEFORM_CUPCAKE_RECIPES.every(
-        (recipe) => recipe.ingredientIds.length >= 2 && recipe.ingredientIds.length <= 5,
-      ),
-    ).toBe(true);
-    expect(FREEFORM_CUPCAKE_RECIPES.some((recipe) => recipe.ingredientIds.length === 2)).toBe(true);
-    expect(
-      FREEFORM_CUPCAKE_RECIPES.some(
+      RECIPES.some(
         (recipe) => new Set(recipe.ingredients.map((ingredient) => ingredient.category)).size < recipe.ingredients.length,
       ),
     ).toBe(true);
   });
 
   it("matches cupcake recipes regardless of ingredient order", () => {
-    const recipe = FREEFORM_CUPCAKE_RECIPES.find((entry) => entry.id === "dream-parade-float");
+    const recipe = RECIPES.find((entry) => entry.id === "dream-parade-float");
     expect(recipe).toBeDefined();
     expect(getFreeformCupcakeRecipe([...recipe!.ingredientIds].reverse())?.id).toBe(recipe!.id);
   });
@@ -49,5 +48,10 @@ describe("freeform mixing data", () => {
       );
       expect(getFallbackIngredientPool(pool.rank)?.ingredientIds).toEqual(pool.ingredientIds);
     }
+  });
+
+  it("uses the highest mixed ingredient rank for fallback buckets", () => {
+    expect(getHighestIngredientRank(["vanilla-cloud", "milk-cloud"])).toBe("base");
+    expect(getHighestIngredientRank(["vanilla-cloud", "matcha-forest"])).toBe("refined");
   });
 });
