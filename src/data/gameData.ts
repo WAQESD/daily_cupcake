@@ -544,6 +544,9 @@ const INGREDIENT_UPGRADE_RECIPE_SPECS: IngredientUpgradeRecipeSpec[] = [
 
 const RECIPES: Recipe[] = FREEFORM_CUPCAKE_RECIPE_SPECS.map((spec) => buildRecipe(spec));
 const RECIPE_MAP: Map<string, Recipe> = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
+const RECIPE_MIXING_KEY_MAP: Map<string, Recipe> = new Map(
+  RECIPES.map((recipe) => [createMixingKey(recipe.ingredientIds), recipe]),
+);
 
 const INGREDIENT_UPGRADE_RECIPES: IngredientUpgradeRecipe[] = INGREDIENT_UPGRADE_RECIPE_SPECS.map((spec) =>
   buildIngredientUpgradeRecipe(spec),
@@ -577,11 +580,11 @@ function getRecipeFromSelection(selection: Selection): Recipe | null {
     return null;
   }
 
-  return RECIPE_MAP.get(createMixingKey(selection)) ?? null;
+  return RECIPE_MIXING_KEY_MAP.get(createMixingKey(selection)) ?? null;
 }
 
 function getFreeformCupcakeRecipe(ingredientIds: string[]) {
-  return RECIPE_MAP.get(createMixingKey(ingredientIds)) ?? null;
+  return RECIPE_MIXING_KEY_MAP.get(createMixingKey(ingredientIds)) ?? null;
 }
 
 function getIngredientUpgradeRecipe(ingredientIds: string[]) {
