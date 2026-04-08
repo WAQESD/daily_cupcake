@@ -9,7 +9,8 @@ export type IngredientFamily =
   | "garden"
   | "dream"
   | "star"
-  | "moon";
+  | "moon"
+  | "aqua";
 
 export type IngredientRank = "base" | "refined";
 export type Rarity = "common" | "rare" | "epic" | "legendary";

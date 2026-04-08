@@ -1,7 +1,9 @@
 import heroBakery from "../../assets/images/hero-bakery-v2.png";
+import signatureNeri from "../../assets/images/signature-neri-v1.png";
 import { useShallow } from "zustand/react/shallow";
+import { Tag } from "../components/Tag";
 import { MAX_PENDING_BOXES, SHOWCASE_LIMIT } from "../config/game";
-import { RECIPES } from "../data/gameData";
+import { RECIPE_MAP, RECIPES } from "../data/gameData";
 import {
   getDiscoveryProgressPercent,
   getNextDeliveryCountdown,
@@ -61,6 +63,7 @@ export function HomePage({ now, onNavigate }: HomePageProps) {
   const canClaimDailyGift = lastDailyClaimDate !== todayKey;
   const deliveryCountdown = getNextDeliveryCountdown(pendingBoxes, lastDeliveryResolvedAt, now);
   const homeActionMessage = challengeMessage || craftMessage || deliveryMessage;
+  const signatureRecipe = RECIPE_MAP.get("glass-aquarium-neri");
 
   return (
     <>
@@ -127,6 +130,44 @@ export function HomePage({ now, onNavigate }: HomePageProps) {
           <span className="stat-box__sub">{`진열 중 ${favorites.length}종`}</span>
         </article>
       </section>
+
+      {signatureRecipe ? (
+        <section className="panel signature-spotlight">
+          <div className="section-heading section-heading--stack">
+            <div>
+              <p className="eyebrow">NEW SIGNATURE</p>
+              <h2>유리수조 잠수사 네리</h2>
+            </div>
+            <button type="button" className="mini-button" onClick={() => onNavigate("bakery")}>
+              오븐에서 구워보기
+            </button>
+          </div>
+
+          <div className="signature-spotlight__content">
+            <figure className="signature-spotlight__image">
+              <img src={signatureNeri} alt="유리수조 잠수사 네리 컵케이크 일러스트" />
+            </figure>
+
+            <div className="signature-spotlight__copy">
+              <div className="signature-spotlight__tags">
+                <Tag label={signatureRecipe.collectionLabel} />
+                <Tag label={signatureRecipe.rarityLabel} bright />
+              </div>
+              <p className="signature-spotlight__lead">
+                가라앉은 마음 바닥에서 아직 반짝이는 한 조각을 건져 올려 주는, 이번 세계관 확장의 새 얼굴입니다.
+              </p>
+              <p>
+                네리는 손님이 하루 끝에 미처 건져 올리지 못한 생각을 유리수조 속에 잠시 맡아 둡니다. 모두가 잠든 뒤 가장 깊은
+                곳까지 잠수해 작은 빛 하나를 건져 컵케이크 위에 얹어 주면, 손님은 자기 안의 대답이 사라진 게 아니라 잠시
+                가라앉아 있었음을 가장 먼저 알아차립니다.
+              </p>
+              <p className="signature-spotlight__ingredients">
+                {signatureRecipe.ingredients.map((ingredient) => ingredient.name).join(" + ")}
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="home-grid">
         <article className="panel rail-panel home-card">

@@ -90,6 +90,18 @@ const BATTERS: Ingredient[] = [
     color: "#ffe28a",
     accent: "#fff8cf",
   },
+  {
+    id: "seafoam-mint",
+    category: "batter",
+    name: "해거품 민트 반죽",
+    short: "해거품",
+    family: "aqua",
+    rank: "refined",
+    rarity: 2,
+    dropWeight: 4,
+    color: "#8bd9d2",
+    accent: "#dff9f5",
+  },
 ];
 
 const CREAMS: Ingredient[] = [
@@ -152,6 +164,18 @@ const CREAMS: Ingredient[] = [
     dropWeight: 5,
     color: "#e6b588",
     accent: "#fff0d6",
+  },
+  {
+    id: "lagoon-milk",
+    category: "cream",
+    name: "라군 밀크 크림",
+    short: "라군밀크",
+    family: "aqua",
+    rank: "refined",
+    rarity: 2,
+    dropWeight: 4,
+    color: "#d9fbff",
+    accent: "#a8eef1",
   },
 ];
 
@@ -216,6 +240,18 @@ const TOPPINGS: Ingredient[] = [
     color: "#8898ff",
     accent: "#e6ebff",
   },
+  {
+    id: "sugar-coral",
+    category: "topping",
+    name: "설탕 산호 토핑",
+    short: "산호",
+    family: "aqua",
+    rank: "refined",
+    rarity: 2,
+    dropWeight: 4,
+    color: "#ff8c8f",
+    accent: "#ffe2de",
+  },
 ];
 
 const FINISHERS: Ingredient[] = [
@@ -279,6 +315,18 @@ const FINISHERS: Ingredient[] = [
     color: "#ffc95c",
     accent: "#fff3bc",
   },
+  {
+    id: "bubble-glaze",
+    category: "finisher",
+    name: "거품 유리막 마무리",
+    short: "유리막",
+    family: "aqua",
+    rank: "refined",
+    rarity: 2,
+    dropWeight: 4,
+    color: "#89dff1",
+    accent: "#e5fbff",
+  },
 ];
 
 const CATEGORY_META: CategoryMeta[] = [
@@ -289,6 +337,7 @@ const CATEGORY_META: CategoryMeta[] = [
 ];
 
 const COLLECTION_META: Record<IngredientFamily, CollectionMetaEntry> = {
+  aqua: { label: "유리수조 산책로", accent: "#6fd9de" },
   berry: { label: "베리 정원", accent: "#ff8ab4" },
   cloud: { label: "구름 티룸", accent: "#ffd7ea" },
   cocoa: { label: "코코아 살롱", accent: "#d79c7d" },
@@ -500,6 +549,13 @@ const FREEFORM_CUPCAKE_RECIPE_SPECS: FreeformCupcakeRecipeSpec[] = [
     name: "가든 리본 소나타 컵케이크",
     description: "크림치즈와 꽃잎, 체리, 리본을 묶어 정원 계열 디저트를 완성하는 안정적인 4재료 조합.",
     ingredientIds: ["cream-cheese", "flower-candy", "pink-ribbon", "cherry-bloom"],
+  },
+  {
+    id: "glass-aquarium-neri",
+    name: "유리수조 잠수사 네리 컵케이크",
+    description:
+      "해거품 민트, 라군 밀크, 설탕 산호, 거품 유리막을 겹쳐 가라앉은 마음 바닥의 빛을 건져 올리는 수조 테마 시그니처 컵케이크.",
+    ingredientIds: ["seafoam-mint", "lagoon-milk", "sugar-coral", "bubble-glaze"],
   },
 ];
 
