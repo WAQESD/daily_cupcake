@@ -2,12 +2,13 @@
   "name": "daily-cupcake",
   "private": true,
   "version": "0.1.0",
-  "description": "React, TypeScript, Zustand로 리팩토링한 컵케이크 수집 웹 게임입니다.",
+  "description": "React, TypeScript, Zustand濡?由ы뙥?좊쭅??而듭??댄겕 ?섏쭛 ??寃뚯엫?낅땲??",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "render:bakery-images": "python scripts/generate_bakery_images.py"
   },
   "repository": {
     "type": "git",
